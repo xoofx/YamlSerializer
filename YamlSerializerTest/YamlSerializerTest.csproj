@@ -1,0 +1,429 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6F4477E5-DCC3-4F26-B51A-3C9C1B8AF395}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>YamlSerializerTest</RootNamespace>
+    <AssemblyName>YamlSerializerTest</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.5.0.9122, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Develop\TestDriven.NET 2.0\NUnit\2.5\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="YamlNodeTest.cs" />
+    <Compile Include="YamlRepresenterTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="TypeUtilsTest.cs" />
+    <Compile Include="YamlConstructorTest.cs" />
+    <Compile Include="YamlParserTest.cs" />
+    <Compile Include="YamlPresenterTest.cs" />
+    <Compile Include="YamlSerializerTest.cs" />
+    <Compile Include="YamlTagValidatorTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YamlSerializer\YamlSerializer.csproj">
+      <Project>{AD9F3A60-C492-4823-8F24-6F4854E7CBF5}</Project>
+      <Name>YamlSerializer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_6.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_7.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_8.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_9.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_10.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_11.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_12.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_13.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_14.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_15.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_15Result.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_16.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_17.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example2_18.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_6.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_7.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_8.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_9.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_10.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_11.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_12.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example5_13.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_6.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_7.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_8.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_9.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_10.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_11.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_12.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_13.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_14.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_15.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_16.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_17.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_18.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_19.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_20.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_21.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_22.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_23.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_24.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_25a.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_25b.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_26.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_27a.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_27b.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_28.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example6_29.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_6.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_7.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_8.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_9.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_10.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_11.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_12.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_13.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_14.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_15.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_16.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_17.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_18.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_19.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_20.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_21.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_22a.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_22b.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_23.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example7_24.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_3a.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_3b.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_3c.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_6.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_7.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_8.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_9.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_10.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_14.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_15.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_16.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_17.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_18.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_19.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_20.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_21.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example8_22.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_1.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_3.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_5.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Example9_6.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

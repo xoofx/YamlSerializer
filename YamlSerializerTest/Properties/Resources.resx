@@ -1,0 +1,460 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Example2_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_1.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_10.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_11.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_12.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_13.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_14" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_14.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_15.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_15Result" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_15Result.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_16.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_17" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_17.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_18.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_2.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_3.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_7.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_8.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example2_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example2_9.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_10.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_11.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_12.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_13.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_3.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_7.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_8.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example5_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example5_9.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_1.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_10.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_11.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_12.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_13.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_14" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_14.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_15.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_16.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_17" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_17.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_18.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_19" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_19.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_2.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_20" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_20.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_21" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_21.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_22" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_22.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_23" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_23.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_24.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_25a" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_25a.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_25b" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_25b.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_26" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_26.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_27a" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_27a.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_27b" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_27b.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_28" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_28.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_29" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_29.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_3.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_7.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_8.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example6_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example6_9.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_1.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_10.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_11.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_12.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_13.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_14" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_14.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_15.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_16.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_17" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_17.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_18.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_19" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_19.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_2.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_20" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_20.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_21" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_21.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_22a" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_22a.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_22b" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_22b.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_23" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_23.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_24.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_3.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_7.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_8.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example7_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example7_9.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_1.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_10" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_10.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_14" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_14.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_15" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_15.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_16.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_17" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_17.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_18.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_19" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_19.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_2.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_20" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_20.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_21" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_21.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_22" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_22.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_3a" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_3a.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_3b" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_3b.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_3c" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_3c.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_7.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_8.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example8_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example8_9.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_1.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_2.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_3.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_4.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_5.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="Example9_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Example9_6.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+</root>

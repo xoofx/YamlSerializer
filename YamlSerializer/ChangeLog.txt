@@ -1,0 +1,2 @@
+﻿--- 2009-09-11 Osamu TAKEUCHI <osamu@big.jp>
+First release of YamlSerializer as 0.9.0.0
