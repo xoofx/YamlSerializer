@@ -6,6 +6,7 @@ using System.Text;
 using System.IO;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace System.Yaml
 {
@@ -411,6 +412,17 @@ namespace System.Yaml
         }
         internal System.Yaml.Serialization.ObjectActivator Activator = 
             new System.Yaml.Serialization.ObjectActivator();
+
+        /// <summary>
+        /// Gets or sets CultureInfo with which the .NET native values are converted
+        /// to / from string. Currently, this is not to be changed from CultureInfo.InvariantCulture.
+        /// </summary>
+        internal CultureInfo Culture {
+            get { return TypeConverter.Culture; }
+            set { TypeConverter.Culture = value; }
+        }
+        internal System.Yaml.Serialization.EasyTypeConverter TypeConverter =
+            new System.Yaml.Serialization.EasyTypeConverter();
     }
 
 #pragma warning disable 659
@@ -1073,7 +1085,7 @@ namespace System.Yaml
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(int value)
         {
-            return new YamlScalar("!!int", value.ToString());
+            return new YamlScalar("!!int", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
         }
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
@@ -1082,7 +1094,7 @@ namespace System.Yaml
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(double value)
         {
-            return new YamlScalar("!!float", value.ToString());
+            return new YamlScalar("!!float", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
         }
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
@@ -1091,7 +1103,7 @@ namespace System.Yaml
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(bool value)
         {
-            return new YamlScalar("!!bool", value.ToString());
+            return new YamlScalar("!!bool", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
         }
         /// <summary>
         /// Implicit conversion from <see cref="DateTime"/> to <see cref="YamlScalar"/>.
@@ -1209,7 +1221,7 @@ namespace System.Yaml
         public YamlScalar(int value)
         {
             Tag = ExpandTag("!!int");
-            Value = value.ToString();
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
         }
         /// <summary>
         /// Initialize a float node that has <paramref name="value"/> as its content.
@@ -1217,7 +1229,7 @@ namespace System.Yaml
         public YamlScalar(double value)
         {
             Tag = ExpandTag("!!float");
-            Value = value.ToString();
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
         }
         /// <summary>
         /// Initialize a bool node that has <paramref name="value"/> as its content.
@@ -1225,7 +1237,7 @@ namespace System.Yaml
         public YamlScalar(bool value)
         {
             Tag = ExpandTag("!!bool");
-            Value = value.ToString();
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
         }
         /// <summary>
         /// Initialize a timestamp node that has <paramref name="value"/> as its content.

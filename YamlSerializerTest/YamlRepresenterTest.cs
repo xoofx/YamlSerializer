@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
+using System.Yaml;
 using System.Yaml.Serialization;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace YamlSerializerTest
 {
@@ -149,9 +151,10 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult("!<!YamlSerializerTest.YamlRepresenterTest%2BTestEnum> abc, あいう"),
                 YamlSerializer.Serialize(TestEnum.abc | TestEnum.あいう));
+            var converter = new EasyTypeConverter();
             Assert.AreEqual(
                 TestEnum.abc | TestEnum.あいう,
-                EasyTypeConverter.ConvertFromString("abc, あいう", typeof(TestEnum)));
+                converter.ConvertFromString("abc, あいう", typeof(TestEnum)));
         }
 
         [Test]
@@ -700,6 +703,39 @@ namespace YamlSerializerTest
             ShowTypeProperties2(NotSpecified.GetProtected());
             ShowTypeProperties2(typeof(NotSpecified.Internal_));
             ShowTypeProperties2(typeof(NotSpecified.ProtectedInternal));
+        }
+
+        [Test]
+        public void CultureTest()
+        {
+            var config = new YamlConfig();
+            config.Culture = new System.Globalization.CultureInfo("da-DK");
+            var serializer = new YamlSerializer(config);
+            object obj = new System.Drawing.PointF(1.2f, 3.1f);
+            var yaml = serializer.Serialize(obj);
+            Assert.AreEqual(
+                BuildResult(
+                    "!<!System.Drawing.PointF>",
+                    "X: 1,2",
+                    "\"Y\": 3,1"
+                    ),
+                yaml
+                );
+            var restore = serializer.Deserialize(yaml)[0];
+            Assert.AreEqual(obj, restore);
+
+            obj = new System.Drawing.Point(1, 3);
+            yaml = serializer.Serialize(obj);
+            Assert.AreEqual(
+                BuildResult(
+                    "!<!System.Drawing.Point> 1; 3"
+                    ),
+                yaml
+                );
+            restore = serializer.Deserialize(yaml)[0];
+            Assert.AreEqual(obj, restore);
+
+            YamlNode.DefaultConfig.Culture = System.Globalization.CultureInfo.CurrentCulture;
         }
     }
 

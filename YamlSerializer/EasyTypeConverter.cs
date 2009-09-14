@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using System.ComponentModel;
+using System.Globalization;
 
 namespace System.Yaml.Serialization
 {
@@ -29,8 +30,15 @@ namespace System.Yaml.Serialization
     /// }
     /// </code>
     /// </example>
-    internal static class EasyTypeConverter
+    internal class EasyTypeConverter
     {
+        internal CultureInfo Culture;
+
+        public EasyTypeConverter()
+        {
+            Culture = System.Globalization.CultureInfo.InvariantCulture;
+        }
+
         private static Dictionary<Type, TypeConverter> TypeConverters = new Dictionary<Type, TypeConverter>();
         private static Dictionary<Type, bool> TypeConverterSpecified = new Dictionary<Type, bool>();
 
@@ -65,21 +73,21 @@ namespace System.Yaml.Serialization
             }
         }
 
-        public static string ConvertToString(object obj)
+        public string ConvertToString(object obj)
         {
             if ( obj == null )
                 return "null";
             var converter = FindConverter(obj.GetType());
             if ( converter != null ) {
-                return converter.ConvertToString(obj);
+                return converter.ConvertToString(null, Culture, obj);
             } else {
                 return obj.ToString();
             }
         }
 
-        public static object ConvertFromString(string s, Type type)
+        public object ConvertFromString(string s, Type type)
         {
-            return FindConverter(type).ConvertFromString(s);
+            return FindConverter(type).ConvertFromString(null, Culture, s);
         }
     }
 }

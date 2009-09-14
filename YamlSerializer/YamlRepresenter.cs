@@ -26,7 +26,7 @@ namespace System.Yaml.Serialization
                 throw new ArgumentException(
                     "Can not serialize (non public?) type '{0}'.".DoFormat(type.FullName));
             }
-             */
+            */
             if ( type == typeof(int) )
                 return YamlNode.ExpandTag("!!int");
             if ( type == typeof(string) )
@@ -91,17 +91,23 @@ namespace System.Yaml.Serialization
             var type = obj.GetType();
 
             if ( obj is IntPtr || type.IsPointer )
-                throw new ArgumentException("Pointer object {0} can not be serialized.".DoFormat(obj.ToString()));
+                throw new ArgumentException("Pointer object '{0}' can not be serialized.".DoFormat(obj.ToString()));
 
-            // bool, byte, sbyte, char, decimal, double, float, int ,uint, long, ulong, short, ushort, string, enum
+            if ( obj is char ) {
+                // config.TypeConverter.ConvertToString("\0") does not show "\0"
+                var n = str(TypeNameToYamlTag(type), obj.ToString() );
+                return n;
+            }
+
+            // bool, byte, sbyte, decimal, double, float, int ,uint, long, ulong, short, ushort, string, enum
             if ( type.IsPrimitive || type.IsEnum || type == typeof(decimal) || type == typeof(string) ) {
-                var n= str(TypeNameToYamlTag(type), obj.ToString());
+                var n = str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj) );
                 return n;
             }
 
             // TypeConverterAttribute 
             if ( EasyTypeConverter.IsTypeConverterSpecified(type) )
-                return str(TypeNameToYamlTag(type), EasyTypeConverter.ConvertToString(obj));
+                return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj));
 
             // array
             if ( type.IsArray ) 

@@ -128,7 +128,7 @@ namespace System.Yaml.Serialization
             // 予想通りの型が見つからなければエラーになる条件でもある
             if ( type.IsEnum || type.IsPrimitive || type == typeof(decimal) || type == typeof(char) ||
                  type == typeof(bool) || type == typeof(string) || EasyTypeConverter.IsTypeConverterSpecified(type) )
-                return EasyTypeConverter.ConvertFromString(node.Value, type);
+                return config.TypeConverter.ConvertFromString(node.Value, type);
 
             if ( type.IsArray ) {
                 // Split dimension from base64 strings
