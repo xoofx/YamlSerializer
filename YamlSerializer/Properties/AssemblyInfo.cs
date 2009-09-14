@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
 [assembly: AssemblyTitle("YamlSerializer")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("This library serializes arbitrary .NET native objects into YAML text. It can also manipulates a generic YAML documents.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Osamu TAKEUCHI <osamu@big.jp>")]
 [assembly: AssemblyProduct("YamlSerializer")]
-[assembly: AssemblyCopyright("Copyright ©  2009")]
+[assembly: AssemblyCopyright("Copyright ©  2009 Osamu TAKEUCHI <osamu@big.jp>")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

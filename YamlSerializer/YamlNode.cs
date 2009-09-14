@@ -1488,6 +1488,19 @@ namespace System.Yaml
             }
             return "{" + t + s + "}";
         }
+
+        bool ProcessMergeKey(YamlNode key, YamlNode value)
+        {
+            if ( key.Tag != YamlNode.ExpandTag("!!merge") ||
+                 !(value is YamlMapping) )
+                return false;
+            foreach ( var entry in (YamlMapping)value ) {
+                if ( ContainsKey(entry.Key) )
+                    continue;
+                Add(entry.Key, entry.Value);
+            }
+            return true;
+        }
         #region IDictionary<Node,Node> members
         /// <summary>
         /// The dictionary that stores key value pairs in the mapping.
@@ -1504,7 +1517,8 @@ namespace System.Yaml
         {
             if ( key == null || value == null )
                 throw new ArgumentNullException("Key and value must be a valid YamlNode.");
-            mapping.Add(key, value);
+            if ( !ProcessMergeKey(key, value) )
+                mapping.Add(key, value);
         }
         /// <summary>
         /// Determines whether the <see cref="YamlMapping"/> contains an element with the specified key.
@@ -1560,7 +1574,10 @@ namespace System.Yaml
         public YamlNode this[YamlNode key]
         {
             get { return mapping[key]; }
-            set { mapping[key] = value; }
+            set {
+                if ( !ProcessMergeKey(key, value) )
+                    mapping[key] = value; 
+            }
         }
         #region ICollection<KeyValuePair<Node,Node>> members
         void ICollection<KeyValuePair<YamlNode, YamlNode>>.Add(KeyValuePair<YamlNode, YamlNode> item)

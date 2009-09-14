@@ -453,8 +453,6 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                     "- !<!System.Collections.Generic.Dictionary%602[[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089],[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089]]>",
-                    "  Keys: {}",
-                    "  Values: {}",
                     "  IDictionary.Entries: ",
                     "    ? - 1",
                     "      - a",
@@ -768,7 +766,6 @@ namespace YamlSerializerTest
                 BuildResult(
                 "!<!System.Collections.ArrayList>",
                 "Capacity: 4",
-                "SyncRoot: !<!System.Object> {}",
                 "ICollection.Items: ",
                 "  - abc",
                 "  - 1",
@@ -802,7 +799,6 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                     "!<!System.Collections.Hashtable>",
-                    "SyncRoot: !<!System.Object> {}",
                     "IDictionary.Entries: ",
                     "  10: 5",
                     "  abc: 123",

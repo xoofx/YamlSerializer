@@ -767,7 +767,7 @@ namespace System.Yaml
         private bool sLinePrefix(int n, Context c) // [67] 
         {
             switch ( c ) {
-            case Context.Folded: // TODO: Check this !!!!
+            case Context.Folded:
             case Context.BlockOut:
             case Context.BlockIn:
                 return sBlockLinePrefix(n);
@@ -1216,7 +1216,7 @@ namespace System.Yaml
             return Repeat(nbSingleChar);
         }
         private bool nb_nsSingleInLine() // [123] 
-        {   // TODO: here "s-white*" must be saved
+        {   
             return Repeat(() => RewindUnless(()=> Repeat_sWhiteAsString() && OneAndRepeat(nsSingleChar)));
         }
         private bool sSingleNextLine(int n) // [124] 
@@ -1268,7 +1268,7 @@ namespace System.Yaml
             }
         }
         private bool nsPlainChar(Context c) // [130] 
-        {   // Todo: ":," is not allowed
+        {
             if ( nsPlainSafe(c) )
                 return true;
             if ( ( /* An ns-char preceding '#' */
@@ -1281,7 +1281,7 @@ namespace System.Yaml
                 ) {
                 stringValue.Append(text[p++]);
                 return true;
-            }                             // Todo: Line breaks must be normalized but not (5.4)
+            }                             
             return false;
         }
         private bool nsPlain(int n, Context c) // [131] 
@@ -1305,7 +1305,7 @@ namespace System.Yaml
             }
         }
         private bool nb_nsPlainInLine(Context c) // [132] 
-        {   // TODO: s-white* must be saved
+        {   
             return Repeat(() => RewindUnless(() => 
                 Repeat_sWhiteAsString() && 
                 OneAndRepeat(() => nsPlainChar(c))
@@ -1638,7 +1638,7 @@ namespace System.Yaml
             return false;
         }
         private bool bChompedLast(ChompingIndicator t) // [165] 
-        {   // TODO: check if end-of-file is ok here
+        {
             return EndOfFile() || (
                 ( t == ChompingIndicator.Strip ) ? bBreak() : bAsLineFeed() 
             );
@@ -1687,7 +1687,6 @@ namespace System.Yaml
             if ( m < max - n ) {
                 p = maxp;
                 Error("Too many indentation was found.");
-                // Todo: I wonder if this error should be captured here or not.
             }
             return m <= 1 ? 1 : m;
         }
@@ -1960,7 +1959,6 @@ namespace System.Yaml
         }
         bool s_lBlockInBlock(int n, Context c) // [198] 
         {
-            // Todo: add assertions
             Debug.Assert(stringValue.Length == 0);
             return
                 s_lBlockScalar(n, c) ||
@@ -1975,7 +1973,7 @@ namespace System.Yaml
                 );
         }
         bool s_lBlockCollection(int n, Context c) // [200]
-        {   // Todo: check
+        {
             return RewindUnless(() =>
                 Optional(RewindUnless(() => sSeparate(n + 1, c) && c_nsProperties(n + 1, c))) &&
                 s_lComments() &&

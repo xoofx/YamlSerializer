@@ -275,7 +275,7 @@ namespace System.Yaml
                 CharEscaping.Add('\x07', @"\a");
                 CharEscaping.Add('\x08', @"\b");
                 CharEscaping.Add('\x0B', @"\v");
-                CharEscaping.Add('\x0C', @"\f"); // Todo: the spec is wrong at [48]
+                CharEscaping.Add('\x0C', @"\f");
                 CharEscaping.Add('\x1B', @"\e");
                 CharEscaping.Add('\x22', @"\""");
                 CharEscaping.Add('\x5C', @"\\");

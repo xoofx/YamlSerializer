@@ -589,7 +589,7 @@ namespace YamlSerializerTest
                     str("Line break (no glyph)\nLine break (glyphed)\n")
                 );
 
-                // Todo: Form feed '\x0c' can not appear in YAML 1.2 document 
+                // '\x0c' can not appear in YAML 1.2 document 
                 // "YAML 1.2 processors parsing a version 1.1 document should therefore 
                 // treat these line breaks as non-break characters, with an appropriate 
                 // warning." seems invalid.
@@ -733,7 +733,6 @@ namespace YamlSerializerTest
             [Test]
             public void TestExample6_4()
             {
-                // TODO: Is the result given in the example wrong?
                 AssertResults(
                     parser.Parse(Resources.Example6_4),
                     map(
@@ -1161,7 +1160,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.6. Double Quoted Lines
             public void TestExample7_6()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_6),
                     str(" 1st non-empty,\n2nd non-empty, 3rd non-empty ")
@@ -1193,7 +1192,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.9. Single Quoted Lines
             public void TestExample7_9()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_9),
                     str(" 1st non-empty,\n2nd non-empty, 3rd non-empty ")
@@ -1202,7 +1201,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.10. Plain Characters
             public void TestExample7_10()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_10),
                     seq(
@@ -1238,7 +1237,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.12. Plain Lines
             public void TestExample7_12()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_12),
                     str("1st non-empty,\n2nd non-empty, 3rd non-empty")
@@ -1247,7 +1246,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.13. Flow Sequence
             public void TestExample7_13()
-            {   // Todo: example is wrong ???
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_13),
                     seq(
@@ -1259,7 +1258,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.14. Flow Sequence Entries
             public void TestExample7_14()
-            {   // Todo: example is wrong ???
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_14),
                     seq(
@@ -1309,7 +1308,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 7.17. Flow Mapping Separate Values
             public void TestExample7_17()
-            {   // Todo: ":" followed by "," should be excluded from ns-plain-char
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example7_17),
                     map(
@@ -1440,6 +1439,7 @@ namespace YamlSerializerTest
             [Test] // Example 8.2. Block Indentation Indicator
             public void TestExample8_2()
             {   // Todo: example is wrong. Since the line " \t\n" is a spaced line, line break should be kept.
+                //       this is different defect than that was reported by Brad on 2009-07-25
                 AssertResults(
                     parser.Parse(Resources.Example8_2),
                     seq(
@@ -1661,7 +1661,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 8.21. Block Scalar Nodes
             public void TestExample8_21()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example8_21),
                     map(
@@ -1733,7 +1733,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 9.5. Directives Documents
             public void TestExample9_5()
-            {   // Todo: example is wrong
+            {   
                 AssertResultsWithWarnings(
                     parser.Parse(Resources.Example9_5),
                     1,
@@ -1787,7 +1787,7 @@ namespace YamlSerializerTest
 
             [Test] // Example 9.6. Stream
             public void TestExample9_6()
-            {   // Todo: example is wrong
+            {   
                 AssertResults(
                     parser.Parse(Resources.Example9_6),
                     str("Document"),

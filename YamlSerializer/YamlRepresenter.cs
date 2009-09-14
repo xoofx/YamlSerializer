@@ -221,7 +221,10 @@ namespace System.Yaml.Serialization
                     mapping.Add(str(entry.Key), array);
                 } else {
                     try {
-                        mapping.Add(str(entry.Key), ObjectToNode(access.Get(obj), access.Type));
+                        var value = ObjectToNode(access.Get(obj), access.Type);
+                        if( (access.SerializeMethod != YamlSerializeMethod.Content) ||
+                            !(value is YamlMapping) || ((YamlMapping)value).Count>0 )
+                        mapping.Add(entry.Key, value);
                     } catch {
                     }
                 }

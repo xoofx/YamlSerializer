@@ -309,5 +309,86 @@ namespace YamlSerializerTest
             Assert.AreEqual(6, invoice["ship-to"].Raw);
             Assert.AreEqual(10, invoice["ship-to"].Column);
         }
+
+        [Test]
+        public void MergeKey()
+        {
+            var map = new YamlMapping("existing", "value");
+            var mergeKey = new YamlScalar("!!merge", "<<");
+
+            map.Add(mergeKey, new YamlMapping("existing", "new value"));
+            Assert.AreEqual(1, map.Count);
+            Assert.IsTrue(map.ContainsKey("existing"));
+            Assert.AreEqual((YamlNode)"value", map["existing"]);
+
+            map.Add(mergeKey, new YamlMapping("not existing", "new value"));
+            Assert.AreEqual(2, map.Count);
+            Assert.IsTrue(map.ContainsKey("existing"));
+            Assert.AreEqual((YamlNode)"value", map["existing"]);
+            Assert.IsTrue(map.ContainsKey("not existing"));
+            Assert.AreEqual((YamlNode)"new value", map["not existing"]);
+
+            map.Add(mergeKey, new YamlMapping("key1", "value1", 2, 2, 3.0, 3.0));
+            Assert.AreEqual(5, map.Count);
+            Assert.IsTrue(map.ContainsKey("existing"));
+            Assert.AreEqual((YamlNode)"value", map["existing"]);
+            Assert.IsTrue(map.ContainsKey("not existing"));
+            Assert.AreEqual((YamlNode)"new value", map["not existing"]);
+            Assert.IsTrue(map.ContainsKey(2));
+            Assert.AreEqual((YamlNode)2, map[2]);
+            Assert.IsTrue(map.ContainsKey(3.0));
+            Assert.AreEqual((YamlNode)3.0, map[3.0]);
+
+            map = new YamlMapping(
+                "existing", "value",
+                mergeKey, new YamlMapping("not existing", "new value"));
+            Assert.AreEqual(2, map.Count);
+            Assert.IsTrue(map.ContainsKey("existing"));
+            Assert.AreEqual((YamlNode)"value", map["existing"]);
+            Assert.IsTrue(map.ContainsKey("not existing"));
+            Assert.AreEqual((YamlNode)"new value", map["not existing"]);
+
+            map = (YamlMapping)YamlNode.FromYaml(
+                "key1: value1\r\n" +
+                "key2: value2\r\n" +
+                "<<: \r\n" +
+                "  key2: value2 modified\r\n" +
+                "  key3: value3\r\n" +
+                "  <<: \r\n" +
+                "    key4: value4\r\n" +
+                "    <<: value5\r\n"+
+                "key6: <<\r\n")[0];
+            Assert.AreEqual(
+                "%YAML 1.2\r\n" +
+                "---\r\n" +
+                "key1: value1\r\n" +
+                "key2: value2\r\n" +
+                "key3: value3\r\n" +
+                "key4: value4\r\n" +
+                "<<: value5\r\n" +
+                "key6: <<\r\n" +
+                "...\r\n",
+                map.ToYaml()
+                );
+            Assert.IsTrue(map.ContainsKey(mergeKey));
+            Assert.AreEqual(mergeKey, map["key6"]);
+
+            map.Add(mergeKey, map); // recursive
+            Assert.AreEqual(    // nothing has been changed
+                "%YAML 1.2\r\n" +
+                "---\r\n" +
+                "key1: value1\r\n" +
+                "key2: value2\r\n" +
+                "key3: value3\r\n" +
+                "key4: value4\r\n" +
+                "<<: value5\r\n" +
+                "key6: <<\r\n" +
+                "...\r\n",
+                map.ToYaml()
+                );
+            Assert.IsTrue(map.ContainsKey(mergeKey));
+            Assert.AreEqual(mergeKey, map["key6"]);
+
+        }
     }
 }
