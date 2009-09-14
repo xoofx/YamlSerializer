@@ -717,7 +717,7 @@ namespace YamlSerializerTest
                 BuildResult(
                     "!<!System.Drawing.PointF>",
                     "X: 1,2",
-                    "\"Y\": 3,1"
+                    "Y: 3,1"
                     ),
                 yaml
                 );

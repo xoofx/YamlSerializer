@@ -46,8 +46,8 @@ namespace System.Yaml
             AddRule<double>("!!float", @"\+?(\.inf|\.Inf|\.INF)", m => double.PositiveInfinity, null);
             AddRule<double>("!!float", @"-(\.inf|\.Inf|\.INF)", m => double.NegativeInfinity, null);
             AddRule<double>("!!float", @"\.nan|\.NaN|\.NAN", m => double.NaN, null);
-            AddRule<bool>("!!bool", @"true|True|TRUE|y|Y|yes|Yes|YES|on|On|ON", m => true, null);
-            AddRule<bool>("!!bool", @"false|False|FALSE|n|N|no|No|NO|off|Off|OFF", m => false, null);
+            AddRule<bool>("!!bool", @"true|True|TRUE", m => true, null);
+            AddRule<bool>("!!bool", @"false|False|FALSE", m => false, null);
             AddRule<object>("!!null", @"null|Null|NULL|\~|", m => null, null);
             AddRule<string>("!!merge", @"<<", m => "<<", null);
             AddRule<DateTime>("!!timestamp",  // Todo: spec is wrong (([ \t]*)Z|[-+][0-9][0-9]?(:[0-9][0-9])?)? should be (([ \t]*)(Z|[-+][0-9][0-9]?(:[0-9][0-9])?))? to accept "2001-12-14 21:59:43.10 -5"
