@@ -389,9 +389,9 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!<!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1>",
-                "a: 0",
+                "c: null",
                 "b: 0",
-                "c: null"
+                "a: 0"
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -402,9 +402,9 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!<!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1>",
-                "a: 2",
+                "c: \"1\"",
                 "b: 1.2",
-                "c: \"1\""
+                "a: 2"
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -413,10 +413,10 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!<!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1>",
-                "a: 2",
-                "b: 1.2",
+                "e: 1",
                 "c: \"1\"",
-                "e: 1"
+                "b: 1.2",
+                "a: 2"
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -716,8 +716,8 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                     "!<!System.Drawing.PointF>",
-                    "X: 1,2",
-                    "Y: 3,1"
+                    "Y: 3,1",
+                    "X: 1,2"
                     ),
                 yaml
                 );

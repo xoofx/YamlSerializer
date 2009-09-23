@@ -269,44 +269,45 @@ namespace YamlSerializerTest
 
             Assert.AreEqual(
                 MultiLineText(
-                    "%YAML 1.2",
-                    "---",
-                    "!<tag:clarkevans.com,2002:invoice>",
-                    "invoice: 34843",
-                    "date: 2001-01-23",
-                    "bill-to: &A ",
-                    "  given: Chris",
-                    "  family: Dumars",
-                    "  address: ",
-                    "    lines: \"458 Walkman Dr.\\n\\",
-                    "      Suite #292\\n\"",
-                    "    city: Royal Oak",
-                    "    state: MI",
-                    "    postal: 48046",
-                    "product: ",
-                    "  - sku: BL394D",
-                    "    quantity: 4",
-                    "    description: Basketball",
-                    "    price: !!float 450",
-                    "  - sku: BL4438H",
-                    "    quantity: 1",
-                    "    description: Super Hoop",
-                    "    price: !!float 2392",
-                    "tax: 251.42",
-                    "total: 4443.52",
-                    "comments: Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.",
-                    "ship-to: *A",
-                    "..."),
+                    @"%YAML 1.2",
+                    @"---",
+                    @"!<tag:clarkevans.com,2002:invoice>",
+                    @"ship-to: &A ",
+                    @"  address: ",
+                    @"    city: Royal Oak",
+                    @"    postal: 48046",
+                    @"    lines: ""458 Walkman Dr.\n\",
+                    @"      Suite #292\n""",
+                    @"    state: MI",
+                    @"  given: Chris",
+                    @"  family: Dumars",
+                    @"product: ",
+                    @"  - quantity: 4",
+                    @"    sku: BL394D",
+                    @"    price: !!float 450",
+                    @"    description: Basketball",
+                    @"  - quantity: 1",
+                    @"    sku: BL4438H",
+                    @"    price: !!float 2392",
+                    @"    description: Super Hoop",
+                    @"date: 2001-01-23",
+                    @"tax: 251.42",
+                    @"bill-to: *A",
+                    @"comments: Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.",
+                    @"total: 4443.52",
+                    @"invoice: 34843",
+                    @"..."
+                    ),
                 yaml);
-            Assert.AreEqual(4, invoice["invoice"].Raw);
+            Assert.AreEqual(27, invoice["invoice"].Raw);
             Assert.AreEqual(10, invoice["invoice"].Column);
-            Assert.AreEqual(5, invoice["date"].Raw);
+            Assert.AreEqual(22, invoice["date"].Raw);
             Assert.AreEqual(7, invoice["date"].Column);
-            Assert.AreEqual(6, invoice["bill-to"].Raw);
+            Assert.AreEqual(4, invoice["bill-to"].Raw);
             Assert.AreEqual(10, invoice["bill-to"].Column);
-            Assert.AreEqual(7, ( (YamlMapping)invoice["bill-to"] )["given"].Raw);
+            Assert.AreEqual(11, ( (YamlMapping)invoice["bill-to"] )["given"].Raw);
             Assert.AreEqual(10, ( (YamlMapping)invoice["bill-to"] )["given"].Column);
-            Assert.AreEqual(6, invoice["ship-to"].Raw);
+            Assert.AreEqual(4, invoice["ship-to"].Raw);
             Assert.AreEqual(10, invoice["ship-to"].Column);
         }
 
@@ -361,12 +362,12 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 "%YAML 1.2\r\n" +
                 "---\r\n" +
-                "key1: value1\r\n" +
-                "key2: value2\r\n" +
-                "key3: value3\r\n" +
-                "key4: value4\r\n" +
                 "<<: value5\r\n" +
                 "key6: <<\r\n" +
+                "key3: value3\r\n" +
+                "key2: value2\r\n" +
+                "key4: value4\r\n" +
+                "key1: value1\r\n" +
                 "...\r\n",
                 map.ToYaml()
                 );
@@ -377,18 +378,191 @@ namespace YamlSerializerTest
             Assert.AreEqual(    // nothing has been changed
                 "%YAML 1.2\r\n" +
                 "---\r\n" +
-                "key1: value1\r\n" +
-                "key2: value2\r\n" +
-                "key3: value3\r\n" +
-                "key4: value4\r\n" +
                 "<<: value5\r\n" +
                 "key6: <<\r\n" +
+                "key3: value3\r\n" +
+                "key2: value2\r\n" +
+                "key4: value4\r\n" +
+                "key1: value1\r\n" +
                 "...\r\n",
                 map.ToYaml()
                 );
             Assert.IsTrue(map.ContainsKey(mergeKey));
             Assert.AreEqual(mergeKey, map["key6"]);
 
+        }
+
+        [Test]
+        public void TestDictionary()
+        {
+            var dict = new Dictionary<YamlNode, int>();
+            var key = (YamlScalar)"abc";
+            dict[key] = 4;
+            Assert.Throws<ArgumentException>(() => dict.Add(key, 5));
+            key.Value = "def";
+            Assert.IsFalse(dict.ContainsKey(key));
+            Assert.IsFalse(dict.Remove(key));
+            Assert.IsFalse(dict.Contains(new KeyValuePair<YamlNode, int>(key, 4)));
+            var entry = dict.First(e => e.Key == key);
+            Assert.IsFalse(dict.Contains(entry));
+            Assert.IsFalse(((ICollection<KeyValuePair<YamlNode,int>>)dict).Remove(entry));
+            Assert.IsTrue(( (ICollection<YamlNode>)dict.Keys ).IsReadOnly);
+        }
+
+        [Test]
+        public void TestChangingMappingKey()
+        {
+            var key = (YamlScalar)"def";
+            var map = new YamlMapping(key, 3);
+            key.Value = "ghi";
+            Assert.IsTrue(map.ContainsKey(key));
+            Assert.IsTrue(map.Remove(key));
+
+            map[map] = 4;
+            map.Tag = "!test";
+            Assert.IsTrue(map.ContainsKey(map));
+            Assert.AreEqual((YamlNode)4, map[map]);
+
+            var map2 = new YamlMapping(key, 3);
+            map2[map2] = 2;
+            map2[map] = 4;
+            Assert.IsTrue(map2.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map2[map2]);
+            Assert.AreEqual((YamlNode)4, map2[map]);
+            map[map2] = 2;
+            Assert.IsTrue(map2.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map2[map2]);
+            Assert.AreEqual((YamlNode)4, map2[map]);
+            Assert.IsTrue(map.ContainsKey(map));
+            Assert.AreEqual((YamlNode)4, map[map]);
+
+            map.Tag = YamlNode.DefaultTagPrefix + "map";
+            Assert.IsTrue(map2.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map2[map2]);
+            Assert.AreEqual((YamlNode)4, map2[map]);
+            Assert.IsTrue(map.ContainsKey(map));
+            Assert.AreEqual((YamlNode)4, map[map]);
+            Assert.IsTrue(map.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map[map2]);
+
+            var seq = new YamlSequence(map);
+            map.Add(seq, 4);
+            Assert.IsTrue(map2.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map2[map2]);
+            Assert.AreEqual((YamlNode)4, map2[map]);
+            Assert.IsTrue(map.ContainsKey(map));
+            Assert.AreEqual((YamlNode)4, map[map]);
+            Assert.IsTrue(map.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map[map2]);
+            seq.Add(map);
+            Assert.IsTrue(map2.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map2[map2]);
+            Assert.AreEqual((YamlNode)4, map2[map]);
+            Assert.IsTrue(map.ContainsKey(map));
+            Assert.AreEqual((YamlNode)4, map[map]);
+            Assert.IsTrue(map.ContainsKey(map2));
+            Assert.AreEqual((YamlNode)2, map[map2]);
+        }
+
+        [Test]
+        public void TestScalarEqualityWithDifferentExpression()
+        {
+            var seq = (YamlSequence)YamlNode.FromYaml(
+                "- 0x01\n" +
+                "- 0b01\n" +
+                "- 1\n" +
+                "- 01\n" +
+                "- 0o1\n" 
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreEqual(seq[0], seq[3]);
+            Assert.AreEqual(seq[0], seq[4]);
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- !!float 10\n" +
+                "- +10.0\n" +
+                "- 10.0\n" +
+                "- 1e1\n" +
+                "- 0.1e2\n"+
+                "- 0.11e2\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreEqual(seq[0], seq[3]);
+            Assert.AreEqual(seq[0], seq[4]);
+            Assert.AreNotEqual(seq[0], seq[5]);
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- y\n" +
+                "- Y\n" +
+                "- yes\n" +
+                "- Yes\n" +
+                "- YES\n" +
+                "- true\n" +
+                "- True\n" +
+                "- TRUE\n" +
+                "- on\n" +
+                "- On\n" +
+                "- ON\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreEqual(seq[0], seq[3]);
+            Assert.AreEqual(seq[0], seq[4]);
+            Assert.AreEqual(seq[0], seq[5]);
+            Assert.AreEqual(seq[0], seq[6]);
+            Assert.AreEqual(seq[0], seq[7]);
+            Assert.AreEqual(seq[0], seq[8]);
+            Assert.AreEqual(seq[0], seq[9]);
+            Assert.AreEqual(seq[0], seq[10]);
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- n\n" +
+                "- N\n" +
+                "- no\n" +
+                "- No\n" +
+                "- NO\n" +
+                "- false\n" +
+                "- False\n" +
+                "- FALSE\n" +
+                "- off\n" +
+                "- Off\n" +
+                "- OFF\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreEqual(seq[0], seq[3]);
+            Assert.AreEqual(seq[0], seq[4]);
+            Assert.AreEqual(seq[0], seq[5]);
+            Assert.AreEqual(seq[0], seq[6]);
+            Assert.AreEqual(seq[0], seq[7]);
+            Assert.AreEqual(seq[0], seq[8]);
+            Assert.AreEqual(seq[0], seq[9]);
+            Assert.AreEqual(seq[0], seq[10]);
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- \n" +
+                "- ~\n" +
+                "- null\n" +
+                "- Null\n" +
+                "- NULL\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreEqual(seq[0], seq[3]);
+            Assert.AreEqual(seq[0], seq[4]);
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- 2000-01-01 00:00:00Z\n" +
+                "- 2000-01-01 09:00:00 +9\n" +
+                "- 1999-12-31 23:00:00 -1\n" +
+                "- 2000-01-01 00:00:00\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[0], seq[2]);
+            Assert.AreNotEqual(seq[0], seq[3]); // how it should be
+            
         }
     }
 }

@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RehashableDictionary.cs" />
     <Compile Include="YamlDoubleQuoteEscaping.cs" />
     <Compile Include="EasyTypeConverter.cs" />
     <Compile Include="ObjectMemberAccessor.cs" />

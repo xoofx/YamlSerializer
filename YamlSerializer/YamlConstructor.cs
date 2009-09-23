@@ -26,7 +26,7 @@ namespace System.Yaml.Serialization
         public object Activate(Type type)
         {
             if ( !activators.ContainsKey(type) )
-                return Activator.CreateInstance(type);
+                return Activator.CreateInstance(type);                              
             return activators[type].Invoke();
         }
     }

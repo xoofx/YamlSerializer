@@ -13,7 +13,7 @@ using System.IO;
 namespace System.Yaml.Serialization
 {                   
     /// <summary>
-    /// <para><see cref="YamlSerizlizer"/> class has instance methods <see cref="Serialize"/> and <see cref="Deserialize"/>, 
+    /// <para><see cref="YamlSerializer"/> class has instance methods <see cref="Serialize(object)"/> and <see cref="Deserialize(string)"/>, 
     /// with which C# native objects can be converted into / from YAML text without any preparations.</para>
     /// <code>
     /// var serializer = new YamlSerializer();

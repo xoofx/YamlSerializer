@@ -41,13 +41,17 @@ namespace System.Yaml
                 return m.Groups[1].Value == "-" ? -v : v;
             }, null);
             // Todo: http://yaml.org/type/float.html is wrong  => [0-9.] should be [0-9_]
-            AddRule<double>("!!float", @"[-+]?(0|[1-9][0-9_]*)?\.[0-9_]*([eE][-+]?[0-9]+)?",
+            AddRule<double>("!!float", @"[-+]?(0|[1-9][0-9_]*)\.[0-9_]*([eE][-+]?[0-9]+)?",
+                m => Convert.ToDouble(m.Value.Replace("_", "")), null);
+            AddRule<double>("!!float", @"[-+]?\._*[0-9][0-9_]*([eE][-+]?[0-9]+)?",
+                m => Convert.ToDouble(m.Value.Replace("_", "")), null);
+            AddRule<double>("!!float", @"[-+]?(0|[1-9][0-9_]*)([eE][-+]?[0-9]+)",
                 m => Convert.ToDouble(m.Value.Replace("_", "")), null);
             AddRule<double>("!!float", @"\+?(\.inf|\.Inf|\.INF)", m => double.PositiveInfinity, null);
             AddRule<double>("!!float", @"-(\.inf|\.Inf|\.INF)", m => double.NegativeInfinity, null);
             AddRule<double>("!!float", @"\.nan|\.NaN|\.NAN", m => double.NaN, null);
-            AddRule<bool>("!!bool", @"true|True|TRUE", m => true, null);
-            AddRule<bool>("!!bool", @"false|False|FALSE", m => false, null);
+            AddRule<bool>("!!bool", @"y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON", m => true, null);
+            AddRule<bool>("!!bool", @"n|N|no|No|NO|false|False|FALSE|off|Off|OFF", m => false, null);
             AddRule<object>("!!null", @"null|Null|NULL|\~|", m => null, null);
             AddRule<string>("!!merge", @"<<", m => "<<", null);
             AddRule<DateTime>("!!timestamp",  // Todo: spec is wrong (([ \t]*)Z|[-+][0-9][0-9]?(:[0-9][0-9])?)? should be (([ \t]*)(Z|[-+][0-9][0-9]?(:[0-9][0-9])?))? to accept "2001-12-14 21:59:43.10 -5"
@@ -214,6 +218,8 @@ namespace System.Yaml
         public bool Decode(YamlScalar node, out object obj)
         {
             obj = null;
+            if ( node.Tag == null || node.Value == null )
+                return false;
             var tag= YamlNode.ExpandTag(node.Tag);
             if ( !types.ContainsKey(tag) )
                 return false;

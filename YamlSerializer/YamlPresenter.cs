@@ -210,7 +210,7 @@ namespace System.Yaml
             if ( tag != "" && tag != "!!str" )
                 Write(tag + " ");
 
-            if ( IsValidPlainText(s, c) && !( node.ShorthandTag() == "!!str" && auto_tag != null ) ) {
+            if ( IsValidPlainText(s, c) && !( node.ShorthandTag() == "!!str" && auto_tag != null && !node.Properties.ContainsKey("plainText")) ) {
                 // one line plain style
                 Write(s);
                 if ( c != Context.NoBreak ) 

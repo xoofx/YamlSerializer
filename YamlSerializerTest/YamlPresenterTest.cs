@@ -131,17 +131,9 @@ namespace YamlSerializerTest
             node = map(str("!!null", ""), str("!!null", ""), "abc", "");
             Assert.AreEqual(
                 BuildResult(
-                    ": ",
-                    "abc: \"\""),
-                YamlPresenter.ToYaml(node)
-                );
-            Assert.AreEqual(YamlNode.FromYaml(node.ToYaml())[0], node);
-
-            node = map(str("!!null", ""), str("!!null", ""), "abc", "");
-            Assert.AreEqual(
-                BuildResult(
-                    ": ",
-                    "abc: \"\""),
+                    "abc: \"\"",
+                    ": "
+                    ),
                 YamlPresenter.ToYaml(node)
                 );
             Assert.AreEqual(YamlNode.FromYaml(node.ToYaml())[0], node);
@@ -149,8 +141,9 @@ namespace YamlSerializerTest
             node = seq(map(str("!!null", ""), str("!!null", ""), "abc", ""));
             Assert.AreEqual(
                 BuildResult(
-                    "- : ",
-                    "  abc: \"\""),
+                    "- abc: \"\"",
+                    "  : "
+                    ),
                 YamlPresenter.ToYaml(node)
                 );
             Assert.AreEqual(YamlNode.FromYaml(node.ToYaml())[0], node);
@@ -287,24 +280,24 @@ namespace YamlSerializerTest
         {
             Assert.AreEqual(
                 BuildResult(
-                    "abc: def",
-                    "? - a",
-                    "  - b",
-                    ": b",
-                    "\"1\": 3.3",
-                    "\"@\": ",
-                    "  a: b",
-                    "  c: ",
-                    "    - b",
-                    "    - c",
+                    "? a12345678901234567890123456789012345678901234567890123456789012345678901234567890", // too long to be implicit key
+                    ": \"1\"",
                     "? !<!SomeType>",
                     "  - a",
                     "  - b",
                     "  - c",
                     ": !<!some>",
                     "  !<!ab> abc: b",
-                    "? a12345678901234567890123456789012345678901234567890123456789012345678901234567890", // too long to be implicit key
-                    ": \"1\""
+                    "\"@\": ",
+                    "  c: ",
+                    "    - b",
+                    "    - c",
+                    "  a: b",
+                    "\"1\": 3.3",
+                    "abc: def",
+                    "? - a",
+                    "  - b",
+                    ": b"
                 ),
                 YamlPresenter.ToYaml(
                     map(
@@ -391,11 +384,11 @@ namespace YamlSerializerTest
                 BuildResult(
                     "- &A A",
                     "- &B ",
+                    "  *A: *B", // recursive
+                    "  b: BB",
                     "  bb: ",
                     "    - a",
                     "    - b",
-                    "  b: BB",
-                    "  *A: *B", // recursive
                     "- *A",
                     "- - A",
                     "  - *A",

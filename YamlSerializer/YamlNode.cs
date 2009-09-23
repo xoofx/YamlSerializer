@@ -425,7 +425,6 @@ namespace System.Yaml
             new System.Yaml.Serialization.EasyTypeConverter();
     }
 
-#pragma warning disable 659
     /// <summary>
     /// <para>Abstract base class of YAML data nodes.</para>
     /// 
@@ -730,8 +729,9 @@ namespace System.Yaml
     /// 
     /// </code>
     /// </example>
-    public abstract class YamlNode
+    public abstract class YamlNode: IRehashableKey
     {
+        #region Non content values
         /// <summary>
         /// Position in a YAML document, where the node appears. 
         /// Both <see cref="ToYaml()"/> and <see cref="FromYaml(string)"/> sets this property.
@@ -749,6 +749,20 @@ namespace System.Yaml
         /// </summary>
         [DefaultValue(0)]
         public int Column { get; set; }
+
+        /// <summary>
+        /// Temporary data, transfering information between YamlRepresenter and YamlPresenter.
+        /// </summary>
+        internal Dictionary<string, string> Properties { get; private set; }
+
+        /// <summary>
+        /// Initialize a node.
+        /// </summary>
+        public YamlNode()
+        {
+            Properties = new Dictionary<string, string>();
+        }
+        #endregion
 
         /// <summary>
         /// YAML Tag for this node, which represents the type of node's value.
@@ -773,11 +787,11 @@ namespace System.Yaml
                         "{0} is not a valid global tag.".DoFormat(value));
                 */
                 tag = value;
+                OnChanged();
             }
         }
         string tag;
 //        static YamlTagValidator TagValidator = new YamlTagValidator();
-
         /// <summary>
         /// YAML Tag for this node, which represents the type of node's value.
         /// The <see cref="Tag"/> property is returned in a shorthand style.
@@ -787,29 +801,52 @@ namespace System.Yaml
             return ShorthandTag(Tag);
         }
 
+        #region Hash code
         /// <summary>
-        /// Temporary data, transfering information between YamlRepresenter and YamlPresenter.
+        /// Serves as a hash function for a particular type. 
+        /// Hash code is calculated using Tag and Value properties.
         /// </summary>
-        internal Dictionary<string, string> Properties { get; private set; }
-
-        /// <summary>
-        /// Initialize a node.
-        /// </summary>
-        public YamlNode()
+        /// <returns>Hash code</returns>
+        public override int GetHashCode()
         {
-            Properties = new Dictionary<string, string>();
+            // caches hash code
+            if ( HashInvalid ) {
+                HashCode = GetHashCodeCore();
+                HashInvalid = false;
+            }
+            return HashCode;
         }
-
+        int HashCode;
+        bool HashInvalid = true;
+        bool ToBeRehash = false;
         /// <summary>
-        /// Returns a <see cref="String"/> that represents the current <see cref="Object"/>.
+        /// Return the hash code. 
+        /// The returned value will be cached until <see cref="OnChanged"/> is called.
         /// </summary>
-        /// <returns>A <see cref="String"/> that represents the current <see cref="Object"/></returns>
-        public override string ToString()
+        /// <returns>Hash code</returns>
+        protected abstract int GetHashCodeCore();
+        /// <summary>
+        /// Call this function when the content of the node is changed.
+        /// </summary>
+        protected virtual void OnChanged()
         {
-            var length = 1024;
-            return ToString(ref length);
+            // avoiding inifinite loop
+            if ( !ToBeRehash ) {
+                try {
+                    HashInvalid = true;
+                    ToBeRehash = true;
+                    if ( Changed != null )
+                        Changed(this, EventArgs.Empty);
+                } finally {
+                    ToBeRehash = false;
+                }
+            }
         }
-        internal abstract string ToString(ref int length);
+        /// <summary>
+        /// Invoked when the node's content or its childrens' content was changed.
+        /// </summary>
+        public event EventHandler Changed;
+        #endregion
 
         /// <summary>
         /// Returns true if <paramref name="obj"/> is of same type as the <see cref="YamlNode"/> and
@@ -848,51 +885,116 @@ namespace System.Yaml
         {
             if ( obj == null || !( obj is YamlNode ) )
                 return false;
-            var nodes_this = new Dictionary<YamlNode, int>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
-            var nodes_obj = new Dictionary<YamlNode, int>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
-            return Equals((YamlNode)obj, nodes_this, nodes_obj);
+            var repository = new ObjectRepository();
+            return Equals((YamlNode)obj, repository);
         }
+
+        /// <summary>
+        /// Remember the order of appearance of nodes. It also has ability of rewinding.
+        /// </summary>
+        internal class ObjectRepository
+        {
+            Dictionary<YamlNode, int> nodes_a = 
+                new Dictionary<YamlNode, int>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
+            Dictionary<YamlNode, int> nodes_b = 
+                new Dictionary<YamlNode, int>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
+            Stack<YamlNode> stack_a = new Stack<YamlNode>();
+            Stack<YamlNode> stack_b = new Stack<YamlNode>();
+
+            public class Status
+            {
+                public int count { get; private set; }
+                public Status(int c)
+                {
+                    count= c;
+                }
+            }
+
+            public bool AlreadyAppeared(YamlNode a, YamlNode b, out bool identity)
+            {
+                int ai, bi;
+                bool ar = nodes_a.TryGetValue(a, out ai);
+                bool br = nodes_b.TryGetValue(b, out bi);
+                if ( ar && br && ai == bi ) {
+                    identity = true;
+                    return true;
+                }
+                if ( ar ^ br ) {
+                    identity = false;
+                    return true;
+                }
+                identity = false;
+                nodes_a.Add(a, nodes_a.Count);
+                nodes_b.Add(b, nodes_b.Count);
+                stack_a.Push(a);
+                stack_b.Push(b);
+                return false;
+            }
+
+            public Status CurrentStatus
+            {
+                get { return new Status(stack_a.Count); }
+                set
+                {
+                    var count = value.count;
+                    while ( stack_a.Count > count ) {
+                        var a = stack_a.Pop();
+                        nodes_a.Remove(a);
+                        var b = stack_b.Pop();
+                        nodes_b.Remove(b);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Returns true if <paramref name="b"/> is of same type as the <see cref="YamlNode"/> and
         /// its content is also logically same.
         /// </summary>
         /// <param name="b">Node to be compared.</param>
-        /// <param name="nodes_a">Node order in the node tree of this node.</param>
-        /// <param name="nodes_b">Node order in the node tree of the other node.</param>
+        /// <param name="repository">Node repository holds the nodes that already appeared and 
+        /// the corresponding node in the other node tree.</param>
         /// <returns>true if they are equal to each other.</returns>
-        internal abstract bool Equals(YamlNode b, Dictionary<YamlNode, int> nodes_a, Dictionary<YamlNode, int> nodes_b);
+        internal abstract bool Equals(YamlNode b, ObjectRepository repository);
         /// <summary>
         /// Returns true if <paramref name="b"/> is of same type as the <see cref="YamlNode"/> and
         /// its Tag is same as the node. It returns true for <paramref name="skip"/> if they
         /// both already appeared in the node trees and were compared.
         /// </summary>
         /// <param name="b">Node to be compared.</param>
-        /// <param name="nodes_a">Node order in the node tree of this node.</param>
-        /// <param name="nodes_b">Node order in the node tree of the other node.</param>
+        /// <param name="repository">Node repository holds the nodes that already appeared and 
+        /// the corresponding node in the other node tree.</param>
         /// <param name="skip">true if they already appeared in the node tree and were compared.</param>
         /// <returns>true if they are equal to each other.</returns>
-        internal bool EqualsSub(YamlNode b, Dictionary<YamlNode, int> nodes_a, Dictionary<YamlNode, int> nodes_b, out bool skip)
+        internal bool EqualsSub(YamlNode b, ObjectRepository repository, out bool skip)
         {
             YamlNode a = this;
+            bool identity;
+            if ( repository.AlreadyAppeared(a, b, out identity) ) {
+                skip = true;
+                return identity;
+            }
             skip = false;
+
+            if ( a == b )
+                return true;
             if ( a.GetType() != b.GetType() || a.Tag != b.Tag )
                 return false;
-            if ( nodes_a.ContainsKey(a) ) {
-                if ( !nodes_b.ContainsKey(b) )
-                    return false;
-                if ( nodes_a[a] != nodes_b[b] )
-                    return false;
-                skip = true;
-                return true;
-            } else {
-                if ( nodes_b.ContainsKey(b) )
-                    return false;
-                nodes_a.Add(a, nodes_a.Count);
-                nodes_b.Add(b, nodes_b.Count);
-                return true;
-            }
+            return true;
         }
 
+        /// <summary>
+        /// Returns a <see cref="String"/> that represents the current <see cref="Object"/>.
+        /// </summary>
+        /// <returns>A <see cref="String"/> that represents the current <see cref="Object"/></returns>
+        public override string ToString()
+        {
+            var length = 1024;
+            return ToString(ref length);
+        }
+        internal abstract string ToString(ref int length);
+
+        #region ToYaml
         /// <summary>
         /// Convert <see cref="YamlNode"/> to a YAML text.
         /// </summary>
@@ -962,6 +1064,7 @@ namespace System.Yaml
             using ( var s = new FileStream(FileName, FileMode.Create) )
                 DefaultPresenter.ToYaml(s, this, config);
         }
+        #endregion
 
         #region static members
 
@@ -1166,7 +1269,6 @@ namespace System.Yaml
 
         #endregion
     }
-#pragma warning restore 659
 
     /// <summary>
     /// Represents a scalar node in a YAML document.
@@ -1199,7 +1301,14 @@ namespace System.Yaml
         /// <summary>
         /// String expression of the node value.
         /// </summary>
-        public string Value { get; set; }
+        public string Value
+        {
+            get { return value; }
+            set { this.value = value; OnChanged(); }
+        }
+        string value;
+
+        #region constructors
         /// <summary>
         /// Create empty string node.
         /// </summary>
@@ -1295,28 +1404,87 @@ namespace System.Yaml
             YamlScalar node;
             DefaultConfig.TagResolver.Encode(value, out node);
             return node;
-        } 
-        
-        #region override default behavior
-        internal override bool Equals(YamlNode b, Dictionary<YamlNode, int> nodes_a, Dictionary<YamlNode, int> nodes_b)
-        {
-            YamlNode a = this;
-            bool skip;
-            if(! base.EqualsSub(b, nodes_a, nodes_b, out skip) )
-                return false;
-            if ( skip ) {
+        }
+        #endregion
 
+        /// <summary>
+        /// Call this function when the content of the node is changed.
+        /// </summary>
+        protected override void OnChanged()
+        {
+            base.OnChanged();
+            UpdateNativeObject();
+        }
+        
+        void UpdateNativeObject()
+        {
+            object value;
+            if ( NativeObjectAvailable = DefaultConfig.TagResolver.Decode(this, out value) ) {
+                NativeObject = value;
+            } else {
+                if ( ( ShorthandTag() == "!!float" ) && ( Value != null ) && new Regex(@"0|[1-9][0-9]*").IsMatch(Value) ) {
+                    NativeObject = Convert.ToDouble(Value);
+                    NativeObjectAvailable = true;
+                }
             }
-            return skip || ( (YamlScalar)a ).Value == ( (YamlScalar)b ).Value;
         }
         /// <summary>
-        /// Serves as a hash function for a particular type. 
-        /// Hash code is calculated using Tag and Value properties.
+        /// <para>When the node has YAML's standard scalar type, the native object corresponding to
+        /// it can be got from this property. To see if this property contains a valid data,
+        /// refer to <see cref="NativeObjectAvailable"/>.</para>
         /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
+        /// <exception cref="InvalidOperationException">This property is not available. See <see cref="NativeObjectAvailable"/>.</exception>
+        /// <remarks>
+        /// <para>This property is available when <see cref="YamlNode.DefaultConfig"/>.<see cref="YamlConfig.TagResolver"/> contains
+        /// an entry for the nodes tag and defines how to decode the <see cref="Value"/> property into native objects.</para>
+        /// <para>When this property is available, equality of the scalar node is evaluated by comparing the <see cref="NativeObject"/>
+        /// properties by the language default equality operator.</para>
+        /// </remarks>
+        [Yaml.Serialization.YamlSerialize(System.Yaml.Serialization.YamlSerializeMethod.Never)]
+        public object NativeObject {
+            get
+            {
+                if ( !NativeObjectAvailable )
+                    throw new InvalidOperationException("NativeObject is not available.");
+                return nativeObject;
+            }
+            private set
+            {
+                nativeObject = value;
+            } 
+        }
+        object nativeObject;
+        /// <summary>
+        /// Gets if <see cref="NativeObject"/> contains a valid content.
+        /// </summary>
+        public bool NativeObjectAvailable { get; private set; }
+
+        internal override bool Equals(YamlNode b, ObjectRepository repository)
         {
-            return ( Value.GetHashCode() * 17 ) ^ Tag.GetHashCode();
+            bool skip;
+            if(! base.EqualsSub(b, repository, out skip) )
+                return false;
+            if(skip)
+                return true;
+            YamlScalar aa = this;
+            YamlScalar bb = (YamlScalar)b;
+            if ( NativeObjectAvailable ) {
+                return bb.NativeObjectAvailable && 
+                    (aa.NativeObject == null ? 
+                        bb.NativeObject==null :
+                        aa.NativeObject.Equals(bb.NativeObject) );
+            } else {
+                return aa.Value == bb.Value;
+            }
+        }
+        /// <summary>
+        /// Returns the hash code. 
+        /// The returned value will be cached until <see cref="YamlNode.OnChanged"/> is called.
+        /// </summary>
+        /// <returns>Hash code</returns>
+        protected override int GetHashCodeCore()
+        {
+            return ( Value.GetHashCode() * 193 ) ^ Tag.GetHashCode();
         }
 
         internal override string ToString(ref int length)
@@ -1330,7 +1498,6 @@ namespace System.Yaml
             length -= Value.Length + 1;
             return tag + "\"" + Value + "\"";
         }
-        #endregion
     }
 
     /// <summary>
@@ -1341,65 +1508,27 @@ namespace System.Yaml
     public abstract class YamlComplexNode: YamlNode
     {
         /// <summary>
-        /// Gets the number of entries in the <see cref="YamlComplexNode"/>.
-        /// </summary>
-        /// <value>The number of entries in the <see cref="YamlComplexNode"/>.</value>
-        public abstract int Count { get; }
-        /// <summary>
-        /// Create an iterator that iterates all the child nodes of the <see cref="YamlComplexNode"/>.
-        /// </summary>
-        /// <returns>An iterator that iterates all the child nodes of the <see cref="YamlComplexNode"/></returns>
-        protected abstract IEnumerator<YamlNode> GetChildNodeEnumerator();
-
-        internal override bool Equals(YamlNode b, Dictionary<YamlNode, int> nodes_a, Dictionary<YamlNode, int> nodes_b)
-        {
-            YamlNode a = this;
-            bool skip;
-            if ( !base.EqualsSub(b, nodes_a, nodes_b, out skip) )
-                return false;
-            if ( skip )
-                return true;
-
-            var aa = ( YamlComplexNode )a;
-            var bb = ( YamlComplexNode )b;
-            if ( aa.Count != bb.Count )
-                return false;
-
-            var iter_a = aa.GetChildNodeEnumerator();
-            var iter_b = bb.GetChildNodeEnumerator();
-            while ( iter_a.MoveNext() && iter_b.MoveNext() )
-                if ( !iter_a.Current.Equals(iter_b.Current, nodes_a, nodes_b) )
-                    return false;
-            return true;
-        }
-
-        /// <summary>
         /// Calculate hash code from <see cref="YamlNode.Tag"/> property and all child nodes.
+        /// The result is cached.
         /// </summary>
         /// <returns>Hash value for the object.</returns>
-        public override int GetHashCode()
+        protected override int GetHashCodeCore() 
         {
-            return GetHashCode(this, 
+            return GetHashCodeCoreSub(0,
                 new Dictionary<YamlNode, int>(
                         TypeUtils.EqualityComparerByRef<YamlNode>.Default));
         }
 
-        static int GetHashCode(YamlNode node, Dictionary<YamlNode, int> dict)
-        {
-            if ( dict.ContainsKey(node) )
-                return dict[node].GetHashCode() * 27;
-            dict.Add(node, dict.Count);
-            if ( !( node is YamlComplexNode ) ) 
-                return node.GetHashCode();
-
-            var complex = (YamlComplexNode)node;
-            var result = complex.Tag.GetHashCode();
-            for ( var iter = complex.GetChildNodeEnumerator(); iter.MoveNext(); ) {
-                result *= 19;
-                result ^= GetHashCode(iter.Current, dict);
-            }
-            return result;
-        }
+        /// <summary>
+        /// Calculates the hash code for a collection object. This function is called recursively 
+        /// on the child objects with the sub cache code repository for the nodes already appeared
+        /// in the node tree.
+        /// </summary>
+        /// <param name="path">The cache code for the path where this node was found.</param>
+        /// <param name="dict">Repository of the nodes that already appeared in the node tree.
+        /// Sub hash code for the nodes can be refered to from this dictionary.</param>
+        /// <returns></returns>
+        protected abstract int GetHashCodeCoreSub(int path, Dictionary<YamlNode, int> dict);
     }
 
     /// <summary>
@@ -1441,6 +1570,82 @@ namespace System.Yaml
     /// </example>
     public class YamlMapping: YamlComplexNode, IDictionary<YamlNode, YamlNode>
     {
+        RehashableDictionary<YamlNode, YamlNode> mapping =
+            new RehashableDictionary<YamlNode, YamlNode>();
+
+
+        /// <summary>
+        /// Calculates the hash code for a collection object. This function is called recursively 
+        /// on the child objects with the sub cache code repository for the nodes already appeared
+        /// in the node tree.
+        /// </summary>
+        /// <param name="path">The cache code for the path where this node was found.</param>
+        /// <param name="dict">Repository of the nodes that already appeared in the node tree.
+        /// Sub hash code for the nodes can be refered to from this dictionary.</param>
+        /// <returns></returns>
+        protected override int GetHashCodeCoreSub(int path, Dictionary<YamlNode, int> dict)
+        {
+            if ( dict.ContainsKey(this) )
+                return dict[this].GetHashCode() * 27 + path;
+            dict.Add(this, path);
+
+            var result = Tag.GetHashCode();
+            foreach ( var item in this ) {
+                int hash_for_key;
+                if ( item.Key is YamlComplexNode ) {
+                    hash_for_key = GetHashCodeCoreSub(path * 317, dict);
+                } else {
+                    hash_for_key = item.Key.GetHashCode();
+                }
+                result += hash_for_key * 971;
+                if ( item.Value is YamlComplexNode ) {
+                    result += GetHashCodeCoreSub(path * 317 + hash_for_key * 151, dict);
+                } else {
+                    result += item.Value.GetHashCode() ^ hash_for_key;
+                }
+            }
+            return result;
+        }
+        
+        internal override bool Equals(YamlNode b, ObjectRepository repository)
+        {
+            YamlNode a = this;
+
+            bool skip;
+            if ( !base.EqualsSub(b, repository, out skip) )
+                return false;
+            if ( skip )
+                return true;
+
+            var aa = this;
+            var bb = (YamlMapping)b;
+            if ( aa.Count != bb.Count )
+                return false;
+
+            var status= repository.CurrentStatus;
+            foreach ( var item in this ) {
+                var candidates = bb.ItemsFromHashCode(item.Key.GetHashCode());
+                KeyValuePair<YamlNode, YamlNode> theone = new KeyValuePair<YamlNode,YamlNode>();
+                if ( !candidates.Any(subitem => {
+                    if ( item.Key.Equals(subitem.Key, repository) ) {
+                        theone = subitem;
+                        return true;
+                    }
+                    repository.CurrentStatus = status;
+                    return false;
+                }) )
+                    return false;
+                if(!item.Value.Equals(theone.Value, repository))
+                    return false;
+            }
+            return true;
+        }
+
+        internal ICollection<KeyValuePair<YamlNode, YamlNode>> ItemsFromHashCode(int key_hash)
+        {
+            return mapping.ItemsFromHash(key_hash);
+        }
+
         /// <summary>
         /// Create a YamlMapping that contains <paramref name="nodes"/> in it.
         /// </summary>
@@ -1458,25 +1663,72 @@ namespace System.Yaml
         /// <param name="nodes">(key, value) pairs are written sequential.</param>
         public YamlMapping(params YamlNode[] nodes)
         {
+            mapping.Added += ChildAdded;
+            mapping.Removed += ChildRemoved;
             if ( nodes.Length / 2 != nodes.Length / 2.0 )
                 throw new ArgumentException("Even number of arguments are expected.");
             Tag = DefaultTagPrefix + "map";
             for ( int i = 0; i < nodes.Length; i += 2 )
                 Add(nodes[i + 0], nodes[i + 1]);
         }
-        #region override default behavior
+
+        void CheckDuplicatedKeys()
+        {
+            foreach ( var entry in this )
+                CheckDuplicatedKeys(entry.Key);
+        }
+
+        void CheckDuplicatedKeys(YamlNode key)
+        {
+            foreach(var k in mapping.ItemsFromHash(key.GetHashCode()))
+                if( ( k.Key != key ) && k.Key.Equals(key) )
+                    throw new InvalidOperationException("Duplicated key found.");
+        }
+
+        void ChildRemoved(object sender, RehashableDictionary<YamlNode, YamlNode>.DictionaryEventArgs e)
+        {
+            e.Key.Changed -= KeyChanged;
+            e.Value.Changed -= ChildChanged;
+            OnChanged();
+            CheckDuplicatedKeys();
+        }
+
+        void ChildAdded(object sender, RehashableDictionary<YamlNode, YamlNode>.DictionaryEventArgs e)
+        {
+            e.Key.Changed += KeyChanged;
+            e.Value.Changed += ChildChanged;
+            OnChanged();
+            CheckDuplicatedKeys();
+        }
+
+        void KeyChanged(object sender, EventArgs e)
+        {
+            ChildChanged(sender, e);
+            CheckDuplicatedKeys((YamlNode)sender);
+        }
+
+        void ChildChanged(object sender, EventArgs e)
+        {
+            OnChanged();
+        }
+
+        bool ProcessMergeKey(YamlNode key, YamlNode value)
+        {
+            if ( key.Tag != YamlNode.ExpandTag("!!merge") ||
+                 !( value is YamlMapping ) )
+                return false;
+            foreach ( var entry in (YamlMapping)value ) {
+                if ( ContainsKey(entry.Key) )
+                    continue;
+                Add(entry.Key, entry.Value);
+            }
+            return true;
+        }
+
         /// <summary>
         /// Enumerate child nodes.
         /// </summary>
         /// <returns>Inumerator that iterates child nodes</returns>
-        protected override IEnumerator<YamlNode> GetChildNodeEnumerator()
-        {
-            foreach(var entry in this) {
-                yield return entry.Key;
-                yield return entry.Value;
-            }
-        }
-
         internal override string ToString(ref int length)
         {
             var s = "";
@@ -1501,23 +1753,8 @@ namespace System.Yaml
             return "{" + t + s + "}";
         }
 
-        bool ProcessMergeKey(YamlNode key, YamlNode value)
-        {
-            if ( key.Tag != YamlNode.ExpandTag("!!merge") ||
-                 !(value is YamlMapping) )
-                return false;
-            foreach ( var entry in (YamlMapping)value ) {
-                if ( ContainsKey(entry.Key) )
-                    continue;
-                Add(entry.Key, entry.Value);
-            }
-            return true;
-        }
         #region IDictionary<Node,Node> members
-        /// <summary>
-        /// The dictionary that stores key value pairs in the mapping.
-        /// </summary>
-        private Dictionary<YamlNode, YamlNode> mapping = new Dictionary<YamlNode, YamlNode>();
+
         /// <summary>
         /// Adds an element with the provided key and value.
         /// </summary>
@@ -1529,9 +1766,10 @@ namespace System.Yaml
         {
             if ( key == null || value == null )
                 throw new ArgumentNullException("Key and value must be a valid YamlNode.");
-            if ( !ProcessMergeKey(key, value) )
+            if ( !ProcessMergeKey(key, value) ) 
                 mapping.Add(key, value);
         }
+
         /// <summary>
         /// Determines whether the <see cref="YamlMapping"/> contains an element with the specified key.
         /// </summary>
@@ -1586,10 +1824,7 @@ namespace System.Yaml
         public YamlNode this[YamlNode key]
         {
             get { return mapping[key]; }
-            set {
-                if ( !ProcessMergeKey(key, value) )
-                    mapping[key] = value; 
-            }
+            set { mapping[key] = value; }
         }
         #region ICollection<KeyValuePair<Node,Node>> members
         void ICollection<KeyValuePair<YamlNode, YamlNode>>.Add(KeyValuePair<YamlNode, YamlNode> item)
@@ -1610,7 +1845,7 @@ namespace System.Yaml
         /// <returns>true if item is found in the <see cref="YamlMapping"/> otherwise, false.</returns>
         public bool Contains(KeyValuePair<YamlNode, YamlNode> item)
         {
-            return mapping.Contains(item);
+            return ( (ICollection<KeyValuePair<YamlNode, YamlNode>>)mapping ).Contains(item);
         }
         void ICollection<KeyValuePair<YamlNode, YamlNode>>.CopyTo(KeyValuePair<YamlNode, YamlNode>[] array, int arrayIndex)
         {
@@ -1619,13 +1854,13 @@ namespace System.Yaml
         /// <summary>
         /// Returns the number of entries in a <see cref="YamlMapping"/>.
         /// </summary>
-        public override int Count
+        public int Count
         {
             get { return mapping.Count; }
         }
         bool ICollection<KeyValuePair<YamlNode, YamlNode>>.IsReadOnly
         {
-            get { return ( (ICollection<KeyValuePair<YamlNode, YamlNode>>)mapping ).IsReadOnly; }
+            get { return false; }
         }
         bool ICollection<KeyValuePair<YamlNode, YamlNode>>.Remove(KeyValuePair<YamlNode, YamlNode> item)
         {
@@ -1645,9 +1880,8 @@ namespace System.Yaml
         #region IEnumerable members
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return ( (System.Collections.IEnumerable)mapping ).GetEnumerator();
+            return mapping.GetEnumerator();
         }
-        #endregion
         #endregion
         #endregion
     }
@@ -1657,7 +1891,7 @@ namespace System.Yaml
     /// Use <see cref="IList&lt;YamlNode&gt;">IList&lt;YamlNode&gt;</see> interface 
     /// to manipulate child nodes.
     /// </summary>
-    public class YamlSequence: YamlComplexNode, IList<YamlNode>
+    public class YamlSequence: YamlComplexNode, IList<YamlNode>, IDisposable
     {
         /// <summary>
         /// Create a sequence node that has <paramref name="nodes"/> as its child.
@@ -1669,15 +1903,79 @@ namespace System.Yaml
             for ( int i = 0; i < nodes.Length; i++ )
                 Add(nodes[i]);
         }
-        #region override default behavior
+
         /// <summary>
-        /// Enumerate child nodes.
+        /// Performs application-defined tasks associated with freeing, releasing, or
+        /// resetting unmanaged resources.
         /// </summary>
-        /// <returns>Inumerator that iterates child nodes</returns>
-        protected override IEnumerator<YamlNode> GetChildNodeEnumerator()
+        public void Dispose()
         {
-            foreach ( var node in this )
-                yield return node;
+            Clear();
+        }
+
+        /// <summary>
+        /// Calculates the hash code for a collection object. This function is called recursively 
+        /// on the child objects with the sub cache code repository for the nodes already appeared
+        /// in the node tree.
+        /// </summary>
+        /// <param name="path">The cache code for the path where this node was found.</param>
+        /// <param name="dict">Repository of the nodes that already appeared in the node tree.
+        /// Sub hash code for the nodes can be refered to from this dictionary.</param>
+        /// <returns></returns>
+        protected override int GetHashCodeCoreSub(int path, Dictionary<YamlNode, int> dict)
+        {
+            if ( dict.ContainsKey(this) )
+                return dict[this].GetHashCode() * 27 + path;
+            dict.Add(this, path);
+
+            var result = Tag.GetHashCode();
+            for ( int i=0; i<Count; i++) {
+                var item= sequence[i];
+                if ( item is YamlComplexNode ) {
+                    result += GetHashCodeCoreSub(path * 317 ^ i.GetHashCode(), dict);
+                } else {
+                    result += item.GetHashCode() ^ i.GetHashCode();
+                }
+            }
+            return result;
+        }
+
+        internal override bool Equals(YamlNode b, ObjectRepository repository)
+        {
+            YamlNode a = this;
+            if ( a == b )
+                return true;
+
+            bool skip;
+            if ( !base.EqualsSub(b, repository, out skip) )
+                return false;
+            if ( skip )
+                return true;
+
+            var aa = this;
+            var bb = (YamlSequence)b;
+            if ( aa.Count != bb.Count )
+                return false;
+
+            var iter_a = aa.GetEnumerator();
+            var iter_b = bb.GetEnumerator();
+            while ( iter_a.MoveNext() && iter_b.MoveNext() )
+                if ( !iter_a.Current.Equals(iter_b.Current, repository) )
+                    return false;
+            return true;
+        }
+        
+        void OnItemAdded(YamlNode item)
+        {
+            item.Changed += ItemChanged;
+        }
+        void OnItemRemoved(YamlNode item)
+        {
+            item.Changed -= ItemChanged;
+        }
+        void ItemChanged(object sender, EventArgs e)
+        {
+            OnChanged();
         }
         
         internal override string ToString(ref int length)
@@ -1698,6 +1996,7 @@ namespace System.Yaml
             }
             return "[" + t + s + "]";
         }
+
         #region IList<Node> members
         List<YamlNode> sequence = new List<YamlNode>();
         /// <summary>
@@ -1727,6 +2026,7 @@ namespace System.Yaml
         public void Insert(int index, YamlNode item)
         {
             sequence.Insert(index, item);
+            OnItemAdded(item);
         }
         /// <summary>
         /// Removes the <see cref="YamlSequence"/> item at the specified index.
@@ -1738,7 +2038,9 @@ namespace System.Yaml
         /// </remarks>
         public void RemoveAt(int index)
         {
+            var item = sequence[index];
             sequence.RemoveAt(index);
+            OnItemRemoved(item);
         }
         /// <summary>
         /// Gets or sets the node at the specified index.
@@ -1752,7 +2054,16 @@ namespace System.Yaml
         public YamlNode this[int index]
         {
             get { return sequence[index]; }
-            set { sequence[index] = value; }
+            set {
+                if ( index < sequence.Count ) {
+                    var item = sequence[index];
+                    sequence[index] = value;
+                    OnItemRemoved(item);
+                } else {
+                    sequence[index] = value;
+                }
+                OnItemAdded(value);
+            }
         }
         /// <summary>
         /// Adds an item to the <see cref="YamlSequence"/>.
@@ -1761,13 +2072,17 @@ namespace System.Yaml
         public void Add(YamlNode item)
         {
             sequence.Add(item);
+            OnItemAdded(item);
         }
         /// <summary>
         /// Removes all nodes from the <see cref="YamlSequence"/>.
         /// </summary>
         public void Clear()
         {
-            sequence.Clear();
+            var old = sequence;
+            sequence = new List<YamlNode>();
+            foreach ( var item in old )
+                OnItemRemoved(item);
         }
         /// <summary>
         /// Determines whether a sequence contains a child node that equals to the specified <paramref name="value"/>
@@ -1811,7 +2126,7 @@ namespace System.Yaml
         /// Gets the number of child nodes of the <see cref="YamlSequence"/>.
         /// </summary>
         /// <value>The number of child nodes of the sequence.</value>
-        public override int Count
+        public int Count
         {
             get { return sequence.Count; }
         }
@@ -1828,7 +2143,13 @@ namespace System.Yaml
         /// 
         public bool Remove(YamlNode node)
         {
-            return sequence.Remove(node);
+            var i = sequence.FindIndex(item => item.Equals(node));
+            if ( i < 0 )
+                return false;
+            var item2 = sequence[i];
+            sequence.RemoveAt(i);
+            OnItemRemoved(item2);
+            return true;
         }
         /// <summary>
         /// Returns an enumerator that iterates through the all child nodes.
@@ -1842,7 +2163,6 @@ namespace System.Yaml
         {
             return ( (System.Collections.IEnumerable)sequence ).GetEnumerator();
         }
-        #endregion
         #endregion
     }
 

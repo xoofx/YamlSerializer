@@ -200,6 +200,14 @@ namespace System.Yaml.Serialization
             return sb.ToString();
         }
 
+        private YamlScalar MapKey(string key)
+        {
+            var node = (YamlScalar)key;
+            node.Properties["expectedTag"] = YamlNode.ExpandTag("!!str");
+            node.Properties["plainText"] = "true";
+            return node;
+        }
+
         private YamlMapping CreateMapping(string tag, object obj /*, bool by_content */ )
         {
             var type = obj.GetType();
@@ -224,13 +232,13 @@ namespace System.Yaml.Serialization
                     var array = CreateBinaryArrayNode((Array)access.Get(obj));
                     AppendToAppeared(access.Get(obj), array);
                     array.Properties["expectedTag"] = TypeNameToYamlTag(access.Type);
-                    mapping.Add(str(entry.Key), array);
+                    mapping.Add(MapKey(entry.Key), array);
                 } else {
                     try {
                         var value = ObjectToNode(access.Get(obj), access.Type);
                         if( (access.SerializeMethod != YamlSerializeMethod.Content) ||
                             !(value is YamlMapping) || ((YamlMapping)value).Count>0 )
-                        mapping.Add(entry.Key, value);
+                        mapping.Add(MapKey(entry.Key), value);
                     } catch {
                     }
                 }
@@ -241,7 +249,7 @@ namespace System.Yaml.Serialization
                 if ( iter.MoveNext() ) { // Count > 0
                     iter.Reset();
                     var dictionary = map();
-                    mapping.Add(str("IDictionary.Entries"), dictionary);
+                    mapping.Add(MapKey("IDictionary.Entries"), dictionary);
                     Func<object, object> key = null, value = null;
                     while ( iter.MoveNext() ) {
                         if ( key == null ) {
@@ -263,7 +271,7 @@ namespace System.Yaml.Serialization
                     var iter = ( (IEnumerable)obj ).GetEnumerator();
                     if ( iter.MoveNext() ) { // Count > 0
                         iter.Reset();
-                        mapping.Add(str("ICollection.Items"), CreateSequence("!!seq", iter, accessor.ValueType));
+                        mapping.Add(MapKey("ICollection.Items"), CreateSequence("!!seq", iter, accessor.ValueType));
                     }
                 }
             }
