@@ -1,4 +1,4 @@
-﻿YamlSerializer 0.9.0.0 (2009-09-11)        Osamu TAKEUCHI <osamu@big.jp>
+﻿YamlSerializer 0.9.0.1 (2009-09-23)        Osamu TAKEUCHI <osamu@big.jp>
 
 Description:
 	A library that serialize / deserialize C# native objects into YAML1.2 text.

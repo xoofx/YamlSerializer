@@ -841,6 +841,16 @@ Color: Red
             Assert.AreEqual(b.Color, Color.Red);
         
         }
+
+        [Test]
+        public void TestMappingToDictionary()
+        {
+            var obj= (Dictionary<object,object>)serializer.Deserialize(
+                "{a: 1, 2: 1.0}"
+                )[0];
+            Assert.AreEqual(obj["a"], 1);
+            Assert.AreEqual(obj[2], 1.0);
+        }
     }
 
 }

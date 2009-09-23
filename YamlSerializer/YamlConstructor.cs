@@ -216,6 +216,15 @@ namespace System.Yaml.Serialization
 
         object MappingToObject(YamlMapping map, Type type, object obj, Dictionary<YamlNode, object> appeared)
         {
+            // Naked !!map is constructed as Dictionary<object, object>.
+            if ( map.Tag == YamlNode.ExpandTag("!!map") && type == null && obj == null ) {
+                var dict = new Dictionary<object, object>();
+                appeared.Add(map, dict);
+                foreach ( var entry in map ) 
+                    dict.Add(NodeToObject(entry.Key, null, appeared), NodeToObject(entry.Value, null, appeared));
+                return dict;
+            }
+
             if ( obj == null ) {
                 obj = config.Activator.Activate(type);
                 appeared.Add(map, obj);
