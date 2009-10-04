@@ -420,7 +420,7 @@ namespace YamlSerializerTest
             };
             // %YAML 1.2
             // ---
-            // - !<!System.Collections.Generic.Dictionary%602[[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089],[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089]]>
+            // - 
             //   Keys: {}
             //   Values: {}
             //   IDictionary.Entries: 
@@ -455,11 +455,9 @@ namespace YamlSerializerTest
             string yaml = serializer.Serialize(obj);
             Assert.AreEqual(
                 BuildResult(
-                    "- !<!System.Collections.Generic.Dictionary%602[[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089],[System.Object,+mscorlib,+Version=2.0.0.0,+Culture=neutral,+PublicKeyToken=b77a5c561934e089]]>",
-                    "  IDictionary.Entries: ",
-                    "    ? - 1",
-                    "      - a",
-                    "    : !System.Object {}",
+                    "- ? - 1",
+                    "    - a",
+                    "  : !System.Object {}",
                     "- null",
                     "- abc",
                     "- \"1\"",
@@ -850,6 +848,13 @@ Color: Red
                 )[0];
             Assert.AreEqual(obj["a"], 1);
             Assert.AreEqual(obj[2], 1.0);
+            var yaml = serializer.Serialize(obj);
+            Assert.AreEqual(
+                BuildResult(
+                    "2: !!float 1",
+                    "a: 1"
+                ), yaml
+                );
         }
     }
 

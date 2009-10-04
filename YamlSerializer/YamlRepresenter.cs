@@ -113,6 +113,9 @@ namespace System.Yaml.Serialization
             if ( type.IsArray ) 
                 return CreateArrayNode((Array)obj);
 
+            if ( type == typeof(Dictionary<object, object>) )
+                return DictionaryToMap(obj);
+
             // class / struct
             if ( type.IsClass || type.IsValueType )
                 return CreateMapping(TypeNameToYamlTag(type), obj);
@@ -245,26 +248,9 @@ namespace System.Yaml.Serialization
             }
             // if the object is IDictionary or IDictionary<,>
             if ( accessor.IsDictionary && !accessor.IsReadOnly(obj) ) {
-                var iter = ( (IEnumerable)obj ).GetEnumerator();
-                if ( iter.MoveNext() ) { // Count > 0
-                    iter.Reset();
-                    var dictionary = map();
+                var dictionary = DictionaryToMap(obj);
+                if ( dictionary.Count > 0 )
                     mapping.Add(MapKey("IDictionary.Entries"), dictionary);
-                    Func<object, object> key = null, value = null;
-                    while ( iter.MoveNext() ) {
-                        if ( key == null ) {
-                            var keyvalue = iter.Current.GetType();
-                            var keyprop = keyvalue.GetProperty("Key");
-                            var valueprop = keyvalue.GetProperty("Value");
-                            key = o => keyprop.GetValue(o, new object[0]);
-                            value = o => valueprop.GetValue(o, new object[0]);
-                        }
-                        dictionary.Add(
-                            ObjectToNode(key(iter.Current), accessor.KeyType),
-                            ObjectToNode(value(iter.Current), accessor.ValueType)
-                            );
-                    }
-                }
             } else {
                 // if the object is ICollection<> or IList
                 if ( accessor.CollectionAdd != null && !accessor.IsReadOnly(obj)) {
@@ -276,6 +262,28 @@ namespace System.Yaml.Serialization
                 }
             }
             return mapping;
+        }
+
+        private YamlMapping DictionaryToMap(object obj)
+        {
+            var accessor = ObjectMemberAccessor.FindFor(obj.GetType());
+            var iter = ( (IEnumerable)obj ).GetEnumerator();
+            var dictionary = map();
+            Func<object, object> key = null, value = null;
+            while ( iter.MoveNext() ) {
+                if ( key == null ) {
+                    var keyvalue = iter.Current.GetType();
+                    var keyprop = keyvalue.GetProperty("Key");
+                    var valueprop = keyvalue.GetProperty("Value");
+                    key = o => keyprop.GetValue(o, new object[0]);
+                    value = o => valueprop.GetValue(o, new object[0]);
+                }
+                dictionary.Add(
+                    ObjectToNode(key(iter.Current), accessor.KeyType),
+                    ObjectToNode(value(iter.Current), accessor.ValueType)
+                    );
+            }
+            return dictionary;
         }
 
         public YamlSequence CreateSequence(string tag, IEnumerator iter, Type expect)
