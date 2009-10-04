@@ -44,10 +44,21 @@ namespace System.Yaml.Serialization
         /// <returns></returns>
         public object NodeToObject(YamlNode node, YamlConfig config)
         {
+            return NodeToObject(node, null, config);
+        }
+        /// <summary>
+        /// Construct YAML node tree that represents a given C# object.
+        /// </summary>
+        /// <param name="node"><see cref="YamlNode"/> to be converted to C# object.</param>
+        /// <param name="expected">Expected type for the root object.</param>
+        /// <param name="config"><see cref="YamlConfig"/> to customize serialization.</param>
+        /// <returns></returns>
+        public object NodeToObject(YamlNode node, Type expected, YamlConfig config)
+        {
             this.config = config;
-            var appeared = 
+            var appeared =
                 new Dictionary<YamlNode, object>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
-            return NodeToObject(node, null, appeared);
+            return NodeToObjectInternal(node, expected, appeared);
         }
         YamlConfig config;
 
@@ -78,7 +89,7 @@ namespace System.Yaml.Serialization
             }
         }
 
-        object NodeToObject(YamlNode node, Type expected, Dictionary<YamlNode, object> appeared)
+        object NodeToObjectInternal(YamlNode node, Type expected, Dictionary<YamlNode, object> appeared)
         {
             if ( appeared.ContainsKey(node) )
                 return appeared[node];
@@ -202,7 +213,7 @@ namespace System.Yaml.Serialization
                     SetArrayElements(array, (YamlSequence)seq[indices[i]], i + 1, indices, elementType, appeared);
             } else {
                 for ( indices[i] = 0; indices[i] < seq.Count; indices[i]++ )
-                    array.SetValue(NodeToObject(seq[indices[i]], elementType, appeared), indices);
+                    array.SetValue(NodeToObjectInternal(seq[indices[i]], elementType, appeared), indices);
             }
         }
 
@@ -221,7 +232,7 @@ namespace System.Yaml.Serialization
                 var dict = new Dictionary<object, object>();
                 appeared.Add(map, dict);
                 foreach ( var entry in map ) 
-                    dict.Add(NodeToObject(entry.Key, null, appeared), NodeToObject(entry.Value, null, appeared));
+                    dict.Add(NodeToObjectInternal(entry.Key, null, appeared), NodeToObjectInternal(entry.Value, null, appeared));
                 return dict;
             }
 
@@ -237,14 +248,14 @@ namespace System.Yaml.Serialization
             foreach(var entry in map){
                 if ( obj == null )
                     throw new InvalidOperationException("Object is not initialized");
-                var name = (string)NodeToObject(entry.Key, typeof(string), appeared);
+                var name = (string)NodeToObjectInternal(entry.Key, typeof(string), appeared);
                 switch ( name ) {
                 case "ICollection.Items":
                     if ( access.CollectionAdd == null )
                         throw new FormatException("{0} is not a collection type.".DoFormat(type.FullName));
                     access.CollectionClear(obj);                                           
                     foreach(var item in (YamlSequence)entry.Value)
-                        access.CollectionAdd(obj, NodeToObject(item, access.ValueType, appeared));
+                        access.CollectionAdd(obj, NodeToObjectInternal(item, access.ValueType, appeared));
                     break;
                 case "IDictionary.Entries":
                     if ( !access.IsDictionary )
@@ -252,12 +263,12 @@ namespace System.Yaml.Serialization
                     var dict = obj as IDictionary;
                     dict.Clear();
                     foreach ( var child in (YamlMapping)entry.Value )
-                        dict.Add(NodeToObject(child.Key, access.KeyType, appeared), NodeToObject(child.Value, access.ValueType, appeared));
+                        dict.Add(NodeToObjectInternal(child.Key, access.KeyType, appeared), NodeToObjectInternal(child.Value, access.ValueType, appeared));
                     break;
                 default:
                     switch ( access[name].SerializeMethod ) {
                     case YamlSerializeMethod.Assign:
-                        access[obj, name] = NodeToObject(entry.Value, access[name].Type, appeared);
+                        access[obj, name] = NodeToObjectInternal(entry.Value, access[name].Type, appeared);
                         break;
                     case YamlSerializeMethod.Content:
                         MappingToObject((YamlMapping)entry.Value, access[name].Type, access[obj, name], appeared);

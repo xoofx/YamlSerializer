@@ -714,16 +714,23 @@ namespace System.Yaml.Serialization
         /// represents a C# object, the result is returned as an array of <see cref="object"/>.
         /// </summary>
         /// <param name="yaml">A YAML text from which C# objects are deserialized.</param>
+        /// <param name="types">Expected type(s) of the root object(s) in the YAML stream.</param>
         /// <returns>C# object(s) deserialized from YAML text.</returns>
-        public object[] Deserialize(string yaml)
+        public object[] Deserialize(string yaml, params Type[] types)
         {
             var c = config != null ? config : YamlNode.DefaultConfig;
 
             var parser = new YamlParser();
             var nodes = parser.Parse(yaml, c);
             var objects = new List<object>();
-            foreach ( var node in nodes )
-                objects.Add(constructor.NodeToObject(node, c));
+            for ( int i = 0; i < nodes.Count; i++ ) {
+                var node = nodes[i];
+                if ( i < types.Length ) {
+                    objects.Add(constructor.NodeToObject(node, types[i], c));
+                } else {
+                    objects.Add(constructor.NodeToObject(node, null, c));
+                }
+            }
             return objects.ToArray();
         }
         /// <summary>
@@ -732,10 +739,11 @@ namespace System.Yaml.Serialization
         /// represents a C# object, the result is returned as an array of <see cref="object"/>.
         /// </summary>
         /// <param name="s">A <see cref="Stream"/> that contains YAML text from which C# objects are deserialized.</param>
+        /// <param name="types">Expected type(s) of the root object(s) in the YAML stream.</param>
         /// <returns>C# object(s) deserialized from YAML text.</returns>
-        public object[] Deserialize(Stream s)
+        public object[] Deserialize(Stream s, params Type[] types)
         {
-            return Deserialize(new StreamReader(s));
+            return Deserialize(new StreamReader(s), types);
         }
         /// <summary>
         /// Deserialize C# object(s) from a YAML text in a <see cref="TextReader"/> <paramref name="tr"/>. 
@@ -743,10 +751,11 @@ namespace System.Yaml.Serialization
         /// represents a C# object, the result is returned as an array of <see cref="object"/>.
         /// </summary>
         /// <param name="tr">A <see cref="TextReader"/> that contains YAML text from which C# objects are deserialized.</param>
+        /// <param name="types">Expected type(s) of the root object(s) in the YAML stream.</param>
         /// <returns>C# object(s) deserialized from YAML text.</returns>
-        public object[] Deserialize(TextReader tr)
+        public object[] Deserialize(TextReader tr, params Type[] types)
         {
-            return Deserialize(tr.ReadToEnd());
+            return Deserialize(tr.ReadToEnd(), types);
         }
         /// <summary>
         /// Deserialize C# object(s) from a YAML text in a file named as <paramref name="YamlFileName"/>. 
@@ -754,11 +763,12 @@ namespace System.Yaml.Serialization
         /// represents a C# object, the result is returned as an array of <see cref="object"/>.
         /// </summary>
         /// <param name="YamlFileName">The name of a file that contains YAML text from which C# objects are deserialized.</param>
+        /// <param name="types">Expected type(s) of the root object(s) in the YAML stream.</param>
         /// <returns>C# object(s) deserialized from YAML text.</returns>
-        public object[] DeserializeFromFile(string YamlFileName)
+        public object[] DeserializeFromFile(string YamlFileName, params Type[] types)
         {
             using ( var s = new FileStream(YamlFileName, FileMode.Open, FileAccess.Read) )
-                return Deserialize(s);
+                return Deserialize(s, types);
         }
     }
 

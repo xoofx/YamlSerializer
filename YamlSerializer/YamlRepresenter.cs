@@ -50,7 +50,11 @@ namespace System.Yaml.Serialization
         {
             this.config = config;
             appeared.Clear();
-            return ObjectToNode(obj, (Type)null);
+            if ( config.OmitTagForRootNode ) {
+                return ObjectToNode(obj, obj.GetType());
+            } else {
+                return ObjectToNode(obj, (Type)null);
+            }
         }
 
         YamlNode ObjectToNode(object obj, Type expect)

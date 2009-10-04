@@ -352,6 +352,10 @@ namespace System.Yaml
         /// </code>
         /// </example>
         public string LineBreakForInput = "\n";
+        /// <summary>
+        /// If true, tag for the root node is omitted by <see cref="System.Yaml.Serialization.YamlSerializer"/>.
+        /// </summary>
+        public bool OmitTagForRootNode = false;
 
         /// <summary>
         /// Add a custom tag resolution rule.

@@ -856,6 +856,41 @@ Color: Red
                 ), yaml
                 );
         }
+
+        [Test]
+        public void TestOmitRootNodesTag()
+        {
+            var obj = new TestClass();
+            obj.list.Add(new ChildClass());
+            var serializer = new YamlSerializer();
+            var yaml= serializer.Serialize(obj);
+            Assert.AreEqual(
+                BuildResult(
+                    "!YamlSerializerTest.TestClass",
+                    "list: ",
+                    "  Capacity: 4",
+                    "  ICollection.Items: ",
+                    "    - !YamlSerializerTest.ChildClass",
+                    "      list: ",
+                    "        Capacity: 0"
+                ), yaml
+            );
+
+            var config = new YamlConfig();
+            config.OmitTagForRootNode = true;
+            serializer = new YamlSerializer(config);
+            yaml = serializer.Serialize(obj);
+            Assert.AreEqual(
+                BuildResult(
+                    "list: ",
+                    "  Capacity: 4",
+                    "  ICollection.Items: ",
+                    "    - !YamlSerializerTest.ChildClass",
+                    "      list: ",
+                    "        Capacity: 0"
+                ), yaml
+            );
+        }
     }
 
 }
