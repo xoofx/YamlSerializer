@@ -69,8 +69,13 @@ namespace YamlSerializerTest
             a.Tag = "!test";
             Assert.AreNotEqual(a, b);
 
+            // Scalar node with a local tag is evaluated its equality by identity.
             b.Tag = "!test";
-            Assert.AreEqual(a, b);
+            Assert.AreEqual(a.Tag, b.Tag);
+            Assert.AreEqual(a.Value, b.Value);
+            Assert.AreNotEqual(a, b);
+            Assert.AreEqual(a, a);
+            Assert.AreEqual(b, b);
         }
 
         class TestBase
@@ -186,8 +191,8 @@ namespace YamlSerializerTest
         [Test]
         public void TestNodeGraphEquality1()
         {
-            var a = str("a");
-            var b = str("a");
+            var a = seq("a");
+            var b = seq("a");
 
             var s1 = seq(a, b);
             var s2 = seq(a, a);
@@ -201,10 +206,11 @@ namespace YamlSerializerTest
         [Test]
         public void TestNodeGraphEquality2()
         {
-            var a1 = str("a");
-            var a2 = str("a");
-            var a3 = str("!dummy", "a");
-            var b = str("b");
+            var a1 = seq("a");
+            var a2 = seq("a");
+            var a3 = seq("a");
+            a3.Tag = "!dummy";
+            var b = seq("b");
 
             Assert.IsTrue(a1.Equals(a2));   // different objects that have same content
 
@@ -218,6 +224,25 @@ namespace YamlSerializerTest
             Assert.IsFalse(s1.Equals(s2)); // node graph topology is different
             Assert.IsFalse(s1.Equals(s3)); // node graph topology is different
             Assert.IsTrue(s2.Equals(s3));  // different objects that have same content and topology
+
+            a1.Tag = "!dummy";
+            a2.Tag = "!dummy";
+            Assert.IsFalse(a1.Equals(a2)); // Tag is same and value is same but tag is unknown.
+        }
+
+        [Test]
+        public void TestNodeGraphEquality3()
+        {   // TODO: this behavior is not consistent with the YAML 1.2 spec but intentional
+            var a = str("a");
+            var b = str("a");
+
+            var s1 = seq(a, b);
+            var s2 = seq(a, a);
+            var s3 = seq(b, b);
+
+            Assert.IsFalse(s1.Equals(s2));
+            Assert.IsFalse(s1.Equals(s3));
+            Assert.IsTrue(s2.Equals(s3));
         }
 
         public static string MultiLineText(params string[] lines)
@@ -419,7 +444,6 @@ namespace YamlSerializerTest
             Assert.IsTrue(map.Remove(key));
 
             map[map] = 4;
-            map.Tag = "!test";
             Assert.IsTrue(map.ContainsKey(map));
             Assert.AreEqual((YamlNode)4, map[map]);
 
@@ -562,7 +586,16 @@ namespace YamlSerializerTest
             Assert.AreEqual(seq[0], seq[1]);
             Assert.AreEqual(seq[0], seq[2]);
             Assert.AreNotEqual(seq[0], seq[3]); // how it should be
-            
+
+            seq = (YamlSequence)YamlNode.FromYaml(
+                "- [1,2,3]\n" +
+                "- [1,2,3]\n" +
+                "- {a: b}\n" +
+                "- {a: b}\n"
+                )[0];
+            Assert.AreEqual(seq[0], seq[1]);
+            Assert.AreEqual(seq[2], seq[3]);
+
         }
     }
 }

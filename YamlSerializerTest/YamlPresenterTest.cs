@@ -131,8 +131,8 @@ namespace YamlSerializerTest
             node = map(str("!!null", ""), str("!!null", ""), "abc", "");
             Assert.AreEqual(
                 BuildResult(
-                    "abc: \"\"",
-                    ": "
+                    ": ",
+                    "abc: \"\""
                     ),
                 YamlPresenter.ToYaml(node)
                 );
@@ -141,8 +141,8 @@ namespace YamlSerializerTest
             node = seq(map(str("!!null", ""), str("!!null", ""), "abc", ""));
             Assert.AreEqual(
                 BuildResult(
-                    "- abc: \"\"",
-                    "  : "
+                    "- : ",
+                    "  abc: \"\""
                     ),
                 YamlPresenter.ToYaml(node)
                 );

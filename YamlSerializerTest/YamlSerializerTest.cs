@@ -804,8 +804,9 @@ namespace YamlSerializerTest
                     "!System.Collections.Hashtable",
                     "IDictionary.Entries: ",
                     "  10: 5",
-                    "  abc: 123",
-                    "  !YamlSerializerTest.TestEnum あいう: 5"),
+                    "  !YamlSerializerTest.TestEnum あいう: 5",
+                    "  abc: 123"
+                    ),
                     yaml);
             Assert.AreEqual(yaml, serializer.Serialize(serializer.Deserialize(yaml)[0]));
         }

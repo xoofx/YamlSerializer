@@ -927,11 +927,15 @@ namespace System.Yaml
                     identity = false;
                     return true;
                 }
-                identity = false;
                 nodes_a.Add(a, nodes_a.Count);
                 nodes_b.Add(b, nodes_b.Count);
                 stack_a.Push(a);
                 stack_b.Push(b);
+                if ( a == b ) {
+                    identity = true;
+                    return true;
+                }
+                identity = false;
                 return false;
             }
 
@@ -979,9 +983,6 @@ namespace System.Yaml
                 return identity;
             }
             skip = false;
-
-            if ( a == b )
-                return true;
             if ( a.GetType() != b.GetType() || a.Tag != b.Tag )
                 return false;
             return true;
@@ -1478,7 +1479,12 @@ namespace System.Yaml
                         bb.NativeObject==null :
                         aa.NativeObject.Equals(bb.NativeObject) );
             } else {
-                return aa.Value == bb.Value;
+                if ( ShorthandTag() == "!!str" ) {
+                    return aa.Value == bb.Value;
+                } else {
+                    // Node with non standard tag is compared by its identity.
+                    return false; 
+                }
             }
         }
         /// <summary>
@@ -1488,7 +1494,19 @@ namespace System.Yaml
         /// <returns>Hash code</returns>
         protected override int GetHashCodeCore()
         {
-            return ( Value.GetHashCode() * 193 ) ^ Tag.GetHashCode();
+            if ( NativeObjectAvailable ) {
+                if ( NativeObject == null ) {
+                    return 0;
+                } else {
+                    return NativeObject.GetHashCode();
+                }
+            } else {
+                if ( ShorthandTag() == "!!str" ) {
+                    return ( Value.GetHashCode() * 193 ) ^ Tag.GetHashCode();
+                } else {
+                    return TypeUtils.HashCodeByRef<YamlScalar>.GetHashCode(this);
+                }
+            }
         }
 
         internal override string ToString(ref int length)
@@ -1577,7 +1595,6 @@ namespace System.Yaml
         RehashableDictionary<YamlNode, YamlNode> mapping =
             new RehashableDictionary<YamlNode, YamlNode>();
 
-
         /// <summary>
         /// Calculates the hash code for a collection object. This function is called recursively 
         /// on the child objects with the sub cache code repository for the nodes already appeared
@@ -1592,6 +1609,10 @@ namespace System.Yaml
             if ( dict.ContainsKey(this) )
                 return dict[this].GetHashCode() * 27 + path;
             dict.Add(this, path);
+
+            // Unless !!map, the hash code is based on the node's identity.
+            if ( ShorthandTag() != "!!map" )
+                return TypeUtils.HashCodeByRef<YamlMapping>.GetHashCode(this);
 
             var result = Tag.GetHashCode();
             foreach ( var item in this ) {
@@ -1620,6 +1641,10 @@ namespace System.Yaml
                 return false;
             if ( skip )
                 return true;
+
+            // Unless !!map, the hash equality is evaluated by the node's identity.
+            if ( ShorthandTag() != "!!map" )
+                return false;
 
             var aa = this;
             var bb = (YamlMapping)b;
@@ -1932,6 +1957,10 @@ namespace System.Yaml
                 return dict[this].GetHashCode() * 27 + path;
             dict.Add(this, path);
 
+            // Unless !!seq, the hash code is based on the node's identity.
+            if ( ShorthandTag() != "!!seq" )
+                return TypeUtils.HashCodeByRef<YamlSequence>.GetHashCode(this);
+
             var result = Tag.GetHashCode();
             for ( int i=0; i<Count; i++) {
                 var item= sequence[i];
@@ -1947,14 +1976,15 @@ namespace System.Yaml
         internal override bool Equals(YamlNode b, ObjectRepository repository)
         {
             YamlNode a = this;
-            if ( a == b )
-                return true;
-
             bool skip;
             if ( !base.EqualsSub(b, repository, out skip) )
                 return false;
             if ( skip )
                 return true;
+
+            // Unless !!seq, the hash equality is evaluated by the node's identity.
+            if ( ShorthandTag() != "!!seq" )
+                return false;
 
             var aa = this;
             var bb = (YamlSequence)b;
