@@ -268,8 +268,8 @@ namespace YamlSerializerTest
             // - !System.Byte 1
             // - !!float 1
             // - "1"
-            // - !<!System.Double[]> [1.1, 2, -3]
-            // - !<!System.String[]>
+            // - !&lt;!System.Double[]&gt; [1.1, 2, -3]
+            // - !&lt;!System.String[]&gt;
             //   - def
             //   - ghi
             //   - "1"
@@ -440,9 +440,9 @@ namespace YamlSerializerTest
             //   abc
             //   def
             //   ghi
-            // - !<!System.Double[]> [1.1, 2, -3, 3.12, 13.2]
-            // - !<!System.Int32[,]> [[1, 3], [4, 5], [10, 1]]
-            // - !<!System.String[]>
+            // - !&lt;!System.Double[]&gt; [1.1, 2, -3, 3.12, 13.2]
+            // - !&lt;!System.Int32[,]&gt; [[1, 3], [4, 5], [10, 1]]
+            // - !&lt;!System.String[]&gt;
             //   - jkl
             //   - |-2
             //     mno

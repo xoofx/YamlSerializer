@@ -356,6 +356,10 @@ namespace System.Yaml
         /// If true, tag for the root node is omitted by <see cref="System.Yaml.Serialization.YamlSerializer"/>.
         /// </summary>
         public bool OmitTagForRootNode = false;
+        /// <summary>
+        /// If true, the verbatim style of a tag, i.e. !&lt; &gt; is avoided as far as possible.
+        /// </summary>
+        public bool DontUseVerbatimTag = false;
 
         /// <summary>
         /// Add a custom tag resolution rule.
@@ -389,7 +393,7 @@ namespace System.Yaml
         /// var yaml =
         ///   @"%YAML 1.2
         ///   ---
-        ///   !&lt;!System.Drawing.SolidBrush&gt;
+        ///   !System.Drawing.SolidBrush
         ///   Color: Red
         ///   ...
         ///   ";

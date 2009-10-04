@@ -27,6 +27,16 @@ namespace System.Yaml
         }
 
         /// <summary>
+        /// Escape the string in URI encoding format.
+        /// </summary>
+        /// <param name="s">String to be escaped.</param>
+        /// <returns>Escaped string.</returns>
+        public static string UriEscapeForTag(this string s)
+        {
+            return UriEncoding.EscapeForTag(s);
+        }
+
+        /// <summary>
         /// Unescape the string escaped in URI encoding format.
         /// </summary>
         /// <param name="s">String to be unescape.</param>
@@ -58,6 +68,19 @@ namespace System.Yaml
             );
         }
         static Regex NonUriChar = new Regex(@"[^0-9A-Za-z\-_.!~*'()\\;/?:@&=$,\[\]]");
+
+        public static string EscapeForTag(string s)
+        {
+            return NonTagChar.Replace(s, m => {
+                var c = m.Value[0];
+                return ( c == ' ' ) ? "+" :
+                       ( c < 0x80 ) ? IntToHex(c) :
+                       ( c < 0x0800 ) ? IntToHex(( ( c >> 6 ) & 0x1f ) + 0xc0, ( c & 0x3f ) + 0x80) :
+                       IntToHex(( ( c >> 12 ) & 0x0f ) + 0xe0, ( ( c >> 6 ) & 0x3f ) + 0x80, ( c & 0x3f ) + 0x80);
+            }
+            );
+        }
+        static Regex NonTagChar = new Regex(@"[^0-9A-Za-z\-_.!~*'()\\;/?:@&=$]");
 
         static char[] intToHex = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
         static string IntToHex(int c)

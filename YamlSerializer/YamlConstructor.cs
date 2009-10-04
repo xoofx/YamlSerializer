@@ -134,11 +134,20 @@ namespace System.Yaml.Serialization
 
         object ScalarToObject(YamlScalar node, Type type)
         {
+            if ( type == null )
+                throw new FormatException("Could not find a type '{0}'.".DoFormat(node.Tag));
+
+            // To accommodate the !!int and !!float encoding, all "_"s in integer and floating point values
+            // are simply neglected.
+            if ( type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) || 
+                 type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) 
+                 || type == typeof(float) || type == typeof(decimal) ) 
+                return config.TypeConverter.ConvertFromString(node.Value.Replace("_", ""), type);
 
             // 変換結果が見かけ上他の型に見える可能性がある場合を優先的に変換
             // 予想通りの型が見つからなければエラーになる条件でもある
-            if ( type.IsEnum || type.IsPrimitive || type == typeof(decimal) || type == typeof(char) ||
-                 type == typeof(bool) || type == typeof(string) || EasyTypeConverter.IsTypeConverterSpecified(type) )
+            if ( type.IsEnum || type.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
+                 type == typeof(string) || EasyTypeConverter.IsTypeConverterSpecified(type) )
                 return config.TypeConverter.ConvertFromString(node.Value, type);
 
             if ( type.IsArray ) {
@@ -175,15 +184,12 @@ namespace System.Yaml.Serialization
                     j += elementSize;
                 }
                 return array;
-            } else
-            if ( type != null ) {
-                if ( node.Value == "" ) {
-                    return config.Activator.Activate(type);
-                } else {
-                    return TypeDescriptor.GetConverter(type).ConvertFromString(node.Value);
-                }
+            } 
+
+            if ( node.Value == "" ) {
+                return config.Activator.Activate(type);
             } else {
-                throw new FormatException("Could not convert '{0}' to C# object.".DoFormat(node.Value));
+                return TypeDescriptor.GetConverter(type).ConvertFromString(node.Value);
             }
         }
 

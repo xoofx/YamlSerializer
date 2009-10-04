@@ -13,7 +13,7 @@ using System.IO;
 namespace System.Yaml.Serialization
 {                   
     /// <summary>
-    /// <para><see cref="YamlSerializer"/> class has instance methods <see cref="Serialize(object)"/> and <see cref="Deserialize(string)"/>, 
+    /// <para><see cref="YamlSerializer"/> class has instance methods <see cref="Serialize(object)"/> and <see cref="Deserialize(string,Type[])"/>, 
     /// with which C# native objects can be converted into / from YAML text without any preparations.</para>
     /// <code>
     /// var serializer = new YamlSerializer();
@@ -64,15 +64,15 @@ namespace System.Yaml.Serialization
     /// // - abc
     /// // - True
     /// // - 1
-    /// // - !&lt;!System.Byte&gt; 1
+    /// // - !System.Byte 1
     /// // - !!float 1
     /// // - "1"
-    /// // - !&lt;!System.Double[]&gt; [1.1, 2, -3]
-    /// // - !&lt;!System.String[]&gt;
+    /// // - !&lt;!System.Double[]%gt; [1.1, 2, -3]
+    /// // - !&lt;!System.String[]%gt;
     /// //   - def
     /// //   - ghi
-    /// // - !&lt;!System.Drawing.Point&gt; 1, 3
-    /// // - !&lt;!System.Drawing.SolidBrush&gt;
+    /// // - !System.Drawing.Point 1, 3
+    /// // - !System.Drawing.SolidBrush
     /// //   Color: Blue
     /// // ...
     /// 
@@ -121,7 +121,7 @@ namespace System.Yaml.Serialization
     /// </code>
     /// 
     /// <para>Since a YAML stream can consist of multiple YAML documents as above,
-    /// <see cref="YamlSerializer.Deserialize(string)"/> returns an array of <see cref="object"/>.
+    /// <see cref="Deserialize(string, Type[])"/> returns an array of <see cref="object"/>.
     /// </para>
     /// 
     /// <h3>Serializing structures and classes</h3>
@@ -211,7 +211,7 @@ namespace System.Yaml.Serialization
     ///    string yaml = serializer.Serialize(test1);
     ///    // %YAML 1.2
     ///    // ---
-    ///    // !&lt;!YamlSerializerTest.Test1&gt;
+    ///    // !YamlSerializerTest.Test1
     ///    // PublicProp: 0
     ///    // ClassPropByAssign: 
     ///    //   Capacity: 4
@@ -278,14 +278,14 @@ namespace System.Yaml.Serialization
     ///     var yaml = serializer.Serialize(test2);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // !&lt;!YamlSerializerTest.Test2&gt; {}
+    ///     // !YamlSerializerTest.Test2 {}
     ///     // ...
     /// 
     ///     test2.Defaulta = "b";
     ///     yaml = serializer.Serialize(test2);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // !&lt;!YamlSerializerTest.Test2&gt;
+    ///     // !YamlSerializerTest.Test2
     ///     // Defaulta: b
     ///     // ...
     /// 
@@ -293,14 +293,14 @@ namespace System.Yaml.Serialization
     ///     var yaml = serializer.Serialize(test2);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // !&lt;!YamlSerializerTest.Test2&gt; {}
+    ///     // !YamlSerializerTest.Test2 {}
     ///     // ...
     /// 
     ///     test2.DynamicDefault = 1;
     ///     yaml = serializer.Serialize(test2);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // !&lt;!YamlSerializerTest.Test2&gt;
+    ///     // !YamlSerializerTest.Test2
     ///     // DynamicDefault: 1
     ///     // ...
     /// 
@@ -308,7 +308,7 @@ namespace System.Yaml.Serialization
     ///     yaml = serializer.Serialize(test2);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // !&lt;!YamlSerializerTest.Test2&gt;
+    ///     // !YamlSerializerTest.Test2
     ///     // Default0: 1
     ///     // ...
     /// }
@@ -352,13 +352,13 @@ namespace System.Yaml.Serialization
     ///     string yaml = serializer.Serialize(a);
     ///     // %YAML 1.2
     ///     // ---
-    ///     // &amp;A !&lt;!TestClass&gt;
+    ///     // &amp;A !TestClass
     ///     // list: 
     ///     //   Capacity: 8
     ///     //   ICollection.Items: 
     ///     //     - *A
     ///     //     - *A
-    ///     //     - &amp;B !&lt;!ChildClass&gt;
+    ///     //     - &amp;B !ChildClass
     ///     //       list: 
     ///     //         Capacity: 4
     ///     //         ICollection.Items: 
@@ -455,7 +455,7 @@ namespace System.Yaml.Serialization
     ///     //   IDictionary.Entries: 
     ///     //     ? - 1
     ///     //       - a
-    ///     //     : !&lt;!System.Object&gt; {}
+    ///     //     : !System.Object {}
     ///     // - null
     ///     // - abc
     ///     // - "1"
@@ -476,9 +476,9 @@ namespace System.Yaml.Serialization
     ///     //   - |-2
     ///     //     mno
     ///     //     pqr
-    ///     // - !&lt;!System.Drawing.Point&gt; 1, 3
-    ///     // - !&lt;!TestEnum&gt; abc
-    ///     // - !&lt;!TestEnum&gt; abc, あいう
+    ///     // - !System.Drawing.Point 1, 3
+    ///     // - !TestEnum abc
+    ///     // - !TestEnum abc, あいう
     ///     // ...
     /// }
     /// </code>

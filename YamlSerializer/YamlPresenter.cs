@@ -486,9 +486,17 @@ namespace System.Yaml
                 return "";
             if ( tag == YamlNode.ShorthandTag(GetPropertyOrNull(node, "expectedTag")) )
                 return "";
-            tag = tag.UriEscape();
-            if ( !CanBeShorthand.IsMatch(tag) ) 
-                tag = "!<" + tag + ">";
+            if ( config.DontUseVerbatimTag ) {
+                if ( tag.StartsWith("!") ) {
+                    tag = tag.UriEscapeForTag();
+                } else {
+                    tag = "!<" + tag.UriEscape() + ">";
+                }
+            } else {
+                tag = tag.UriEscape();
+                if ( !CanBeShorthand.IsMatch(tag) )
+                    tag = "!<" + tag + ">";
+            }
             return tag;
         }
         // has a tag handle and the body contains only ns-tag-char.
