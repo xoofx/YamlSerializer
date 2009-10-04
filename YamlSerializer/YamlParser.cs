@@ -421,9 +421,7 @@ namespace System.Yaml
                 nsAnchorChar = Charset(c =>
                     nsChar(c) && !cFlowIndicator(c)
                     );
-                nsPlainSafeOut = Charset(c =>
-                    nsChar(c) && c != ':' && c != '#'
-                    );
+                nsPlainSafeOut = c => nsChar(c);
                 nsPlainSafeIn = Charset(c =>
                     nsPlainSafeOut(c) && !cFlowIndicator(c)
                     );
@@ -759,7 +757,7 @@ namespace System.Yaml
             return OneAndRepeat(Charsets.sWhite) || StartOfLine();
         }
         private bool StartOfLine() // [66, 79, 206]
-        {
+        {   // TODO: how about "---" ?
             return p == 0 || text[p - 1] == '\n' || text[p - 1] == '\r' || text[p - 1] == '\ufeff';
         }
         #endregion
@@ -1236,10 +1234,10 @@ namespace System.Yaml
         }
         #endregion
         #region 7.3.3 Plain Style
-        private bool nsPlainFirst() // [126] 
+        private bool nsPlainFirst(Context c) // [126] 
         {
             if ( Charsets.nsPlainFirstSub(text[p]) ||
-                   ( ( text[p] == '?' || text[p] == ':' || text[p] == '-' ) && Charsets.nsChar(text[p + 1]) ) ) {
+                   ( ( text[p] == '?' || text[p] == ':' || text[p] == '-' ) && nsPlainSafe(c, text[p+1]) ) ) {
                 WarnIfCharWasBreakInYAML1_1();
                 stringValue.Append(text[p++]);
                 return true;
@@ -1269,15 +1267,14 @@ namespace System.Yaml
         }
         private bool nsPlainChar(Context c) // [130] 
         {
-            if ( nsPlainSafe(c) )
+            if ( text[p]!= ':' && text[p]!='#' && nsPlainSafe(c) )
                 return true;
             if ( ( /* An ns-char preceding '#' */
                     p != 0 &&
                     Charsets.nsChar(text[p - 1]) &&
                     text[p] == '#' ) ||
                 ( /* ':' Followed by an ns-char */
-                    text[p] == ':' &&
-                    nsPlainSafe(c, text[p+1]))
+                    text[p] == ':' && nsPlainSafe(c, text[p+1]) )
                 ) {
                 stringValue.Append(text[p++]);
                 return true;
@@ -1313,7 +1310,7 @@ namespace System.Yaml
         }
         private bool nsPlainOneLine(Context c) // [133] 
         {
-            return nsPlainFirst() && nb_nsPlainInLine(c);
+            return nsPlainFirst(c) && nb_nsPlainInLine(c);
         }
         private bool s_nsPlainNextLine(int n, Context c) // [134] 
         {
@@ -1470,7 +1467,7 @@ namespace System.Yaml
         private bool c_nsFlowMapSeparateValue(int n, Context c) // [147] 
         {
             return RewindUnless(() =>
-                text[p++] == ':' && (
+                text[p++] == ':' && !nsPlainSafe(c, text[p]) && (
                     RewindUnless(() => sSeparate(n, c) && nsFlowNode(n, c)) ||
                     eNode() /* Value */
                 )

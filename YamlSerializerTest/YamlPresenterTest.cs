@@ -282,12 +282,12 @@ namespace YamlSerializerTest
                 BuildResult(
                     "? a12345678901234567890123456789012345678901234567890123456789012345678901234567890", // too long to be implicit key
                     ": \"1\"",
-                    "? !<!SomeType>",
+                    "? !SomeType",
                     "  - a",
                     "  - b",
                     "  - c",
-                    ": !<!some>",
-                    "  !<!ab> abc: b",
+                    ": !some",
+                    "  !ab abc: b",
                     "\"@\": ",
                     "  c: ",
                     "    - b",
@@ -326,7 +326,7 @@ namespace YamlSerializerTest
         public void TestScalarTags()
         {
             Assert.AreEqual(
-                BuildResult("!<!Enum> one"),
+                BuildResult("!Enum one"),
                 YamlPresenter.ToYaml(str("!Enum", "one"))
             );
 
@@ -341,7 +341,7 @@ namespace YamlSerializerTest
             );
 
             Assert.AreEqual(
-                BuildResult("!<!actual> abc"),
+                BuildResult("!actual abc"),
                 YamlPresenter.ToYaml(str("!actual", "abc", "!base"))
             );
 
@@ -433,6 +433,36 @@ namespace YamlSerializerTest
             for ( int i = 0; i < n; i++ )
                 sb.AppendLine("abc");
             System.Diagnostics.Debug.WriteLine(( DateTime.Now - t ).ToString());
+        }
+
+        [Test]
+        public void TestVerbatimTags()
+        {
+            var node = new YamlScalar("!Test", "value");
+            var yaml = node.ToYaml();
+            Assert.AreEqual(
+                BuildResult("!Test value"),
+                yaml);
+
+            node = new YamlScalar("!!Test", "value");
+            yaml = node.ToYaml();
+            Assert.AreEqual(
+                BuildResult("!!Test value"),
+                yaml);
+
+
+            node = new YamlScalar("!System.Int32", "value");
+            yaml = node.ToYaml();
+            Assert.AreEqual(
+                BuildResult("!System.Int32 value"),
+                yaml);
+
+            node = new YamlScalar("!Test+Test", "value");
+            yaml = node.ToYaml();
+            Assert.AreEqual(
+                BuildResult("!Test%2BTest value"),
+                yaml);
+
         }
     }
 }

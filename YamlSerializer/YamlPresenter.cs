@@ -486,12 +486,12 @@ namespace System.Yaml
                 return "";
             if ( tag == YamlNode.ShorthandTag(GetPropertyOrNull(node, "expectedTag")) )
                 return "";
-            if ( tag.StartsWith("!!") ) {
-                tag = tag.UriEscape();
-            } else {
-                tag = "!<" + tag.UriEscape() + ">"; // Todo: omit braces if possible
-            }
+            tag = tag.UriEscape();
+            if ( !CanBeShorthand.IsMatch(tag) ) 
+                tag = "!<" + tag + ">";
             return tag;
         }
+        // has a tag handle and the body contains only ns-tag-char.
+        static Regex CanBeShorthand = new Regex(@"^!([-0-9a-zA-Z]*!)?[-0-9a-zA-Z%#;/?:@&=+$_.^*'\(\)]*$");
     }
 }

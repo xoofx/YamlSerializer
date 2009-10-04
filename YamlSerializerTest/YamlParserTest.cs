@@ -2037,6 +2037,15 @@ namespace YamlSerializerTest
                 );
 
             }
+
+            [Test]
+            public void TestNsPlainChar()
+            {
+                AssertResults(
+                    parser.Parse("{::::}"),
+                    map(":::", str("!!null", ""))
+                );
+            }
         }
     }
 }

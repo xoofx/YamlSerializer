@@ -141,14 +141,14 @@ namespace YamlSerializerTest
             var yaml = serializer.Serialize(test2);
             // %YAML 1.2
             // ---
-            // !<!YamlSerializerTest.Test2> {}
+            // !YamlSerializerTest.Test2 {}
             // ...
 
             test2.Defaulta = "b";
             yaml = serializer.Serialize(test2);
             // %YAML 1.2
             // ---
-            // !<!YamlSerializerTest.Test2>
+            // !YamlSerializerTest.Test2
             // Defaulta: b
             // ...
 
@@ -157,7 +157,7 @@ namespace YamlSerializerTest
             yaml = serializer.Serialize(test2);
             // %YAML 1.2
             // ---
-            // !<!YamlSerializerTest.Test2>
+            // !YamlSerializerTest.Test2
             // DynamicDefault: 1
             // ...
 
@@ -165,7 +165,7 @@ namespace YamlSerializerTest
             yaml = serializer.Serialize(test2);
             // %YAML 1.2
             // ---
-            // !<!YamlSerializerTest.Test2>
+            // !YamlSerializerTest.Test2
             // Default0: 1
             // ...
         }
@@ -186,7 +186,7 @@ namespace YamlSerializerTest
             string yaml = serializer.Serialize(test1);
             // %YAML 1.2
             // ---
-            // !<!YamlSerializerTest.Test1>
+            // !YamlSerializerTest.Test1
             // PublicProp: 0
             // ReadOnlyClassProp: 
             //   Capacity: 4
@@ -206,7 +206,7 @@ namespace YamlSerializerTest
             // ...
             Assert.AreEqual(
                 BuildResult(
-                    "!<!YamlSerializerTest.Test1>",
+                    "!YamlSerializerTest.Test1",
                     "IntArrayField: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]",
                     "PublicField: 2",
                     "IntArrayFieldBinary: |+2",
@@ -265,7 +265,7 @@ namespace YamlSerializerTest
             // - abc
             // - True
             // - 1
-            // - !<!System.Byte> 1
+            // - !System.Byte 1
             // - !!float 1
             // - "1"
             // - !<!System.Double[]> [1.1, 2, -3]
@@ -273,8 +273,8 @@ namespace YamlSerializerTest
             //   - def
             //   - ghi
             //   - "1"
-            // - !<!System.Drawing.Point> 1, 3
-            // - !<!YamlSerializer.YamlScalar>
+            // - !System.Drawing.Point 1, 3
+            // - !YamlSerializer.YamlScalar
             //   Value: brabrabra
             //   Tag: tag:yaml.org,2002:str
             // ...
@@ -285,7 +285,7 @@ namespace YamlSerializerTest
                     "- abc",
                     "- True",
                     "- 1",
-                    "- !<!System.Byte> 1",
+                    "- !System.Byte 1",
                     "- !!float 1",
                     "- \"1\"",
                     "- !<!System.Double[]> [1.1, 2, -3]",
@@ -293,8 +293,8 @@ namespace YamlSerializerTest
                     "  - def",
                     "  - ghi",
                     "  - \"1\"",
-                    "- !<!System.Drawing.Point> 1, 3",
-                    "- !<!System.Yaml.YamlScalar>",
+                    "- !System.Drawing.Point 1, 3",
+                    "- !System.Yaml.YamlScalar",
                     "  Tag: tag:yaml.org,2002:str",
                     "  Value: brabrabra"
                     ),
@@ -355,13 +355,13 @@ namespace YamlSerializerTest
             string yaml = serializer.Serialize(a);
             // %YAML 1.2
             // ---
-            // &A !<!YamlSerializerTest.TestClass>
+            // &A !YamlSerializerTest.TestClass
             // list: 
             //   Capacity: 8
             //   ICollection.Items: 
             //     - *A
             //     - *A
-            //     - &B !<!YamlSerializerTest.ChildClass>
+            //     - &B !YamlSerializerTest.ChildClass
             //       list: 
             //         Capacity: 4
             //         ICollection.Items: 
@@ -371,13 +371,13 @@ namespace YamlSerializerTest
             // ...
             Assert.AreEqual(
                 BuildResult(
-                    "&A !<!YamlSerializerTest.TestClass>",
+                    "&A !YamlSerializerTest.TestClass",
                     "list: ",
                     "  Capacity: 8",
                     "  ICollection.Items: ",
                     "    - *A",
                     "    - *A",
-                    "    - &B !<!YamlSerializerTest.ChildClass>",
+                    "    - &B !YamlSerializerTest.ChildClass",
                     "      list: ",
                     "        Capacity: 4",
                     "        ICollection.Items: ",
@@ -426,7 +426,7 @@ namespace YamlSerializerTest
             //   IDictionary.Entries: 
             //     ? - 1
             //       - a
-            //     : !<!System.Object> {}
+            //     : !System.Object {}
             // - null
             // - abc
             // - "1"
@@ -447,9 +447,9 @@ namespace YamlSerializerTest
             //   - |-2
             //     mno
             //     pqr
-            // - !<!System.Drawing.Point> 1, 3
-            // - !<!YamlSerializerTest.TestEnum> abc
-            // - !<!YamlSerializerTest.TestEnum> abc, あいう
+            // - !System.Drawing.Point 1, 3
+            // - !YamlSerializerTest.TestEnum abc
+            // - !YamlSerializerTest.TestEnum abc, あいう
             // ...
 
             string yaml = serializer.Serialize(obj);
@@ -459,7 +459,7 @@ namespace YamlSerializerTest
                     "  IDictionary.Entries: ",
                     "    ? - 1",
                     "      - a",
-                    "    : !<!System.Object> {}",
+                    "    : !System.Object {}",
                     "- null",
                     "- abc",
                     "- \"1\"",
@@ -477,9 +477,9 @@ namespace YamlSerializerTest
                     "  - jkl",
                     @"  - ""mno\r\n\",
                     @"    pqr""",
-                    "- !<!System.Drawing.Point> 1, 3",
-                    "- !<!YamlSerializerTest.TestEnum> abc",
-                    "- !<!YamlSerializerTest.TestEnum> abc, あいう"),
+                    "- !System.Drawing.Point 1, 3",
+                    "- !YamlSerializerTest.TestEnum abc",
+                    "- !YamlSerializerTest.TestEnum abc, あいう"),
                 yaml);
 
             object restored = serializer.Deserialize(yaml)[0];
@@ -498,21 +498,21 @@ namespace YamlSerializerTest
             var yaml = serializer.Serialize(Color.Aqua);
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Drawing.Color> Aqua"),
+                    "!System.Drawing.Color Aqua"),
                 yaml);
             object obj = serializer.Deserialize(yaml);
 
             yaml = serializer.Serialize(Color.FromArgb(128, Color.Blue));
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Drawing.Color> 128, 0, 0, 255"),
+                    "!System.Drawing.Color 128, 0, 0, 255"),
                 yaml);
             obj = serializer.Deserialize(yaml);
 
             yaml = serializer.Serialize(Brushes.Black);
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Drawing.SolidBrush>",
+                    "!System.Drawing.SolidBrush",
                     "Color: Black"),
                 yaml);
             // obj = serializer.Deserialize(yaml);
@@ -520,7 +520,7 @@ namespace YamlSerializerTest
             yaml = serializer.Serialize(new Pen(new SolidBrush(Color.White), 10));
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Drawing.Pen>",
+                    "!System.Drawing.Pen",
                     "Transform: ",
                     "  Elements: [1, 0, 0, 1, 0, 0]",
                     "CompoundArray: []",
@@ -528,7 +528,7 @@ namespace YamlSerializerTest
                     "LineJoin: Miter",
                     "DashCap: Flat",
                     "Width: 10",
-                    "Brush: !<!System.Drawing.SolidBrush>",
+                    "Brush: !System.Drawing.SolidBrush",
                     "  Color: 255, 255, 255",
                     "EndCap: Flat",
                     "DashOffset: 0",
@@ -543,7 +543,7 @@ namespace YamlSerializerTest
             yaml = serializer.Serialize(new Font("Times", 12));
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Drawing.Font> Times New Roman, 12pt"),
+                    "!System.Drawing.Font Times New Roman, 12pt"),
                 yaml);
             obj = serializer.Deserialize(yaml);
 
@@ -768,12 +768,12 @@ namespace YamlSerializerTest
             var yaml = serializer.Serialize(c1);
             Assert.AreEqual(
                 BuildResult(
-                "!<!System.Collections.ArrayList>",
+                "!System.Collections.ArrayList",
                 "Capacity: 4",
                 "ICollection.Items: ",
                 "  - abc",
                 "  - 1",
-                "  - !<!YamlSerializerTest.Test1>",
+                "  - !YamlSerializerTest.Test1",
                 "    IntArrayField: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]",
                 "    PublicField: 0",
                 "    IntArrayFieldBinary: |+2",
@@ -803,11 +803,11 @@ namespace YamlSerializerTest
             yaml = serializer.Serialize(c2);
             Assert.AreEqual(
                 BuildResult(
-                    "!<!System.Collections.Hashtable>",
+                    "!System.Collections.Hashtable",
                     "IDictionary.Entries: ",
                     "  10: 5",
                     "  abc: 123",
-                    "  !<!YamlSerializerTest.TestEnum> あいう: 5"),
+                    "  !YamlSerializerTest.TestEnum あいう: 5"),
                     yaml);
             Assert.AreEqual(yaml, serializer.Serialize(serializer.Deserialize(yaml)[0]));
         }
@@ -819,7 +819,7 @@ namespace YamlSerializerTest
             var yaml =
               @"%YAML 1.2
 ---
-!<!System.Drawing.SolidBrush>
+!System.Drawing.SolidBrush
 Color: Red
 ...
 ";
