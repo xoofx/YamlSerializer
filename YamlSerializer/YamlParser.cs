@@ -203,6 +203,7 @@ namespace System.Yaml
             if ( state.value != null && v != null )
                 throw new Exception();
             state.value = v;
+            v.OnLoaded();
             return true;
         }
         YamlNode GetValue()

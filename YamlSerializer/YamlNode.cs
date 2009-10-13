@@ -898,6 +898,13 @@ namespace System.Yaml
         }
 
         /// <summary>
+        /// Called when the node is loaded from a document.
+        /// </summary>
+        internal virtual void OnLoaded()
+        {
+        }
+
+        /// <summary>
         /// Remember the order of appearance of nodes. It also has ability of rewinding.
         /// </summary>
         internal class ObjectRepository
@@ -1745,17 +1752,40 @@ namespace System.Yaml
             OnChanged();
         }
 
-        bool ProcessMergeKey(YamlNode key, YamlNode value)
+        internal override void OnLoaded()
         {
-            if ( key.Tag != YamlNode.ExpandTag("!!merge") ||
-                 !( value is YamlMapping ) )
-                return false;
-            foreach ( var entry in (YamlMapping)value ) {
-                if ( ContainsKey(entry.Key) )
-                    continue;
-                Add(entry.Key, entry.Value);
+            base.OnLoaded();
+            ProcessMergeKey();
+        }
+        void ProcessMergeKey()
+        {
+            // find merge key
+            var merge_key = Keys.FirstOrDefault(key => key.Tag == YamlNode.ExpandTag("!!merge"));
+            if ( merge_key == null )
+                return;
+
+            // merge the value
+            var value = this[merge_key];
+            if ( value is YamlMapping ) {
+                Remove(merge_key);
+                Merge((YamlMapping)value);
+            } else
+            if ( value is YamlSequence ) {
+                Remove(merge_key);
+                foreach ( var item in (YamlSequence)value )
+                    if ( item is YamlMapping )
+                        Merge((YamlMapping)item);
+            } else {
+                // ** ignore
+                // throw new InvalidOperationException(
+                //     "Can't merge the value into a mapping: " + value.ToString());
             }
-            return true;
+        }
+        void Merge(YamlMapping map)
+        {
+            foreach ( var entry in map ) 
+                if ( !ContainsKey(entry.Key) )
+                    Add(entry.Key, entry.Value);
         }
 
         /// <summary>
@@ -1799,8 +1829,7 @@ namespace System.Yaml
         {
             if ( key == null || value == null )
                 throw new ArgumentNullException("Key and value must be a valid YamlNode.");
-            if ( !ProcessMergeKey(key, value) ) 
-                mapping.Add(key, value);
+            mapping.Add(key, value);
         }
 
         /// <summary>

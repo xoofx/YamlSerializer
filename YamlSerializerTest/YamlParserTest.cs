@@ -2046,6 +2046,23 @@ namespace YamlSerializerTest
                     map(":::", str("!!null", ""))
                 );
             }
+
+            [Test]
+            public void TestMergeKey()
+            {
+                AssertResults(
+                    parser.Parse("{ x : 1, << : {x : 2, 'y' : 3} }"),
+                    map(
+                        "x", 1,
+                        "y", 3)
+                );
+                AssertResults(
+                    parser.Parse("{ << : {x : 2, 'y' : 3}, x : 1 }"),
+                    map(
+                        "x", 1,
+                        "y", 3)
+                );
+            }
         }
     }
 }

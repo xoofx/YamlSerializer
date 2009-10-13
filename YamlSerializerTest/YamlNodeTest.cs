@@ -343,11 +343,13 @@ namespace YamlSerializerTest
             var mergeKey = new YamlScalar("!!merge", "<<");
 
             map.Add(mergeKey, new YamlMapping("existing", "new value"));
+            map.OnLoaded();
             Assert.AreEqual(1, map.Count);
             Assert.IsTrue(map.ContainsKey("existing"));
             Assert.AreEqual((YamlNode)"value", map["existing"]);
 
             map.Add(mergeKey, new YamlMapping("not existing", "new value"));
+            map.OnLoaded();
             Assert.AreEqual(2, map.Count);
             Assert.IsTrue(map.ContainsKey("existing"));
             Assert.AreEqual((YamlNode)"value", map["existing"]);
@@ -355,6 +357,7 @@ namespace YamlSerializerTest
             Assert.AreEqual((YamlNode)"new value", map["not existing"]);
 
             map.Add(mergeKey, new YamlMapping("key1", "value1", 2, 2, 3.0, 3.0));
+            map.OnLoaded();
             Assert.AreEqual(5, map.Count);
             Assert.IsTrue(map.ContainsKey("existing"));
             Assert.AreEqual((YamlNode)"value", map["existing"]);
@@ -368,6 +371,7 @@ namespace YamlSerializerTest
             map = new YamlMapping(
                 "existing", "value",
                 mergeKey, new YamlMapping("not existing", "new value"));
+            map.OnLoaded();
             Assert.AreEqual(2, map.Count);
             Assert.IsTrue(map.ContainsKey("existing"));
             Assert.AreEqual((YamlNode)"value", map["existing"]);
@@ -399,11 +403,12 @@ namespace YamlSerializerTest
             Assert.IsTrue(map.ContainsKey(mergeKey));
             Assert.AreEqual(mergeKey, map["key6"]);
 
+            map.Remove(mergeKey);
             map.Add(mergeKey, map); // recursive
+            map.OnLoaded();
             Assert.AreEqual(    // nothing has been changed
                 "%YAML 1.2\r\n" +
                 "---\r\n" +
-                "<<: value5\r\n" +
                 "key6: <<\r\n" +
                 "key3: value3\r\n" +
                 "key2: value2\r\n" +
@@ -412,9 +417,6 @@ namespace YamlSerializerTest
                 "...\r\n",
                 map.ToYaml()
                 );
-            Assert.IsTrue(map.ContainsKey(mergeKey));
-            Assert.AreEqual(mergeKey, map["key6"]);
-
         }
 
         [Test]
