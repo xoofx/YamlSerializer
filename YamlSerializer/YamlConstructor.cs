@@ -234,7 +234,7 @@ namespace System.Yaml.Serialization
         object MappingToObject(YamlMapping map, Type type, object obj, Dictionary<YamlNode, object> appeared)
         {
             // Naked !!map is constructed as Dictionary<object, object>.
-            if ( map.Tag == YamlNode.ExpandTag("!!map") && type == null && obj == null ) {
+            if ( ( ( map.ShorthandTag() == "!!map" && type == null ) || type == typeof(Dictionary<object,object>) ) && obj == null ) {
                 var dict = new Dictionary<object, object>();
                 appeared.Add(map, dict);
                 foreach ( var entry in map ) 
@@ -272,6 +272,8 @@ namespace System.Yaml.Serialization
                         dict.Add(NodeToObjectInternal(child.Key, access.KeyType, appeared), NodeToObjectInternal(child.Value, access.ValueType, appeared));
                     break;
                 default:
+                    if(!access.ContainsKey(name))
+                        throw new FormatException("{0} does not have a member {1}.".DoFormat(type.FullName, name));
                     switch ( access[name].SerializeMethod ) {
                     case YamlSerializeMethod.Assign:
                         access[obj, name] = NodeToObjectInternal(entry.Value, access[name].Type, appeared);

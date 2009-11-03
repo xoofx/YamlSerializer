@@ -195,6 +195,10 @@ namespace System.Yaml.Serialization
         {
             get { return Accessors[name]; }
         }
+        public bool ContainsKey(string name)
+        {
+            return Accessors.ContainsKey(name);
+        }
 
         /// <summary>
         /// メンバへの読み書きを行うことができる
