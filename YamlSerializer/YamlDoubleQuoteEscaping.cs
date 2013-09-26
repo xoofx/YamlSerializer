@@ -1,37 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using System.Text.RegularExpressions;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
-    /// <summary>
-    /// Extend string object to have .DoubleQuoteEscape() / .DoubleQuoteUnescape().
-    /// </summary>
-    internal static class StringYamlDoubleQuoteEscapeExtention
-    {
-        /// <summary>
-        /// Escape control codes with YAML double quoted string format.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static string YamlDoubleQuoteEscape(this string s)
-        {
-            return YamlDoubleQuoteEscaping.Escape(s);
-        }
-        /// <summary>
-        /// Unescape control codes escaped with YAML double quoted string format.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static string YamlDoubleQuoteUnescape(this string s)
-        {
-            return YamlDoubleQuoteEscaping.Unescape(s);
-        }
-    }
-
     /// <summary>
     /// YAML style double quoted string escape / unescape.
     /// </summary>

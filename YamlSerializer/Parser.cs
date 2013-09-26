@@ -5,22 +5,8 @@ using System.Text;
 
 using System.Text.RegularExpressions;
 
-namespace System.Yaml
-{                               
-    /// <summary>
-    /// <para>When <see cref="Parser&lt;State&gt;"/> reports syntax error by exception, this class is thrown.</para>
-    /// 
-    /// <para>Sytax errors can also be reported by simply returing false with giving some warnings.</para>
-    /// </summary>
-    internal class ParseErrorException: Exception
-    {
-        /// <summary>
-        /// Initialize an instance of <see cref="ParseErrorException"/>
-        /// </summary>
-        /// <param name="message">Error message.</param>
-        public ParseErrorException(string message) : base(message) { }
-    }
-
+namespace YamlSerializer
+{
     /// <summary>
     /// <para>Base class to implement a parser class.</para>
     /// 
@@ -105,12 +91,12 @@ namespace System.Yaml
             get
             {
                 Position pos = new Position();
-                pos.Raw = Lines.BinarySearch(p);
-                if ( pos.Raw < 0 ) {
-                    pos.Raw = ~pos.Raw;
-                    pos.Column = p - Lines[pos.Raw - 1] + 1;
+                pos.Row = Lines.BinarySearch(p);
+                if ( pos.Row < 0 ) {
+                    pos.Row = ~pos.Row;
+                    pos.Column = p - Lines[pos.Row - 1] + 1;
                 } else {
-                    pos.Raw++; // 1 base
+                    pos.Row++; // 1 base
                     pos.Column = 1;
                 }
                 return pos;
@@ -143,9 +129,9 @@ namespace System.Yaml
         /// </summary>
         public struct Position { 
             /// <summary>
-            /// Raw in a text.
+            /// Row in a text.
             /// </summary>
-            public int Raw; 
+            public int Row; 
             /// <summary>
             /// Column in a text.
             /// </summary>
@@ -163,7 +149,7 @@ namespace System.Yaml
         public bool Error(string message, params object[] args)
         {
             throw new ParseErrorException(
-                string.Format("Syntax error at line {0} column {1}\r\n", CurrentPosition.Raw, CurrentPosition.Column) +
+                string.Format("Syntax error at line {0} column {1}\r\n", CurrentPosition.Row, CurrentPosition.Column) +
                     string.Format(message, args));
         }
         /// <summary>
@@ -237,7 +223,7 @@ namespace System.Yaml
             message = string.Format( 
                 "Warning: {0} at line {1} column {2}.",
                 string.Format(message, args),
-                CurrentPosition.Raw,
+                CurrentPosition.Row,
                 CurrentPosition.Column
             );
             StoreWarning(message);

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -12,6 +12,26 @@
     <AssemblyName>YamlSerializer</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,21 +67,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IRehashableKey.cs" />
+    <Compile Include="Serialization\ObjectActivator.cs" />
+    <Compile Include="ParseErrorException.cs" />
     <Compile Include="RehashableDictionary.cs" />
+    <Compile Include="Nodes\YamlComplexNode.cs" />
+    <Compile Include="StringYamlDoubleQuoteEscapeExtention.cs" />
+    <Compile Include="YamlConfig.cs" />
     <Compile Include="YamlDoubleQuoteEscaping.cs" />
-    <Compile Include="EasyTypeConverter.cs" />
+    <Compile Include="Serialization\EasyTypeConverter.cs" />
     <Compile Include="ObjectMemberAccessor.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeUtils.cs" />
     <Compile Include="UriEncoding.cs" />
     <Compile Include="YamlAnchorDictionary.cs" />
-    <Compile Include="YamlConstructor.cs" />
+    <Compile Include="Serialization\YamlConstructor.cs" />
+    <Compile Include="Nodes\YamlMapping.cs" />
+    <Compile Include="Nodes\YamlNodeManipulator.cs" />
     <Compile Include="YamlParser.cs" />
-    <Compile Include="YamlNode.cs" />
+    <Compile Include="Nodes\YamlNode.cs" />
     <Compile Include="YamlPresenter.cs" />
     <Compile Include="YamlRepresenter.cs" />
-    <Compile Include="YamlSerializer.cs" />
+    <Compile Include="Nodes\YamlScalar.cs" />
+    <Compile Include="Nodes\YamlSequence.cs" />
+    <Compile Include="Serialization\YamlSerializer.cs" />
     <Compile Include="YamlTagPrefixes.cs" />
     <Compile Include="YamlTagResolutionScheme.cs" />
     <Compile Include="YamlTagValidator.cs" />
@@ -69,6 +99,18 @@
   <ItemGroup>
     <Content Include="ChangeLog.txt" />
     <Content Include="Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -79,16 +121,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>cd "$(TargetDir)"
-del $(ProjectName).zip
-del $(ProjectName)Src.zip
-cd ..\..\..
-zip -9 -r -D "$(TargetDir)$(ProjectName)Src.zip" $(ProjectName) $(ProjectName)Test -x $(ProjectName)\bin\* -x $(ProjectName)\Help\* -x $(ProjectName)\obj\* -x $(ProjectName)\publish\* -x $(ProjectName)Test\bin\* -x $(ProjectName)Test\obj\* -x *.VisualState.xml
-cd "$(TargetDir)"
-copy ..\..\Readme.txt Readme.txt
-copy ..\..\ChangeLog.txt ChangeLog.txt
-copy "..\..\Help\Release\YAML Serializer.chm" "YAML Serializer.chm"
-zip -9 -n zip $(ProjectName).zip Readme.txt ChangeLog.txt YamlSerializer.XML $(TargetFileName) "YAML Serializer.chm"
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,0 +1,11 @@
+syntax: glob
+*.user
+*.xml
+*.suo
+*.DotSettings
+*.pdb
+*.zip
+*.cache
+*.resources
+*.Cache
+*.force

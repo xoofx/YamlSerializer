@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using System.Collections;
 using System.Runtime.InteropServices;
 
-namespace System.Yaml.Serialization
+namespace YamlSerializer.Serialization
 {
     /// <summary>
     /// Converts C# object to YamlNode
@@ -19,7 +18,7 @@ namespace System.Yaml.Serialization
     /// </example>
     internal class YamlRepresenter: YamlNodeManipulator
     {
-        private static string TypeNameToYamlTag(Type type)
+        private string TypeNameToYamlTag(Type type)
         {
             /*
             if ( TypeUtils.GetType(type.FullName) == null ) {
@@ -37,7 +36,8 @@ namespace System.Yaml.Serialization
                 return YamlNode.ExpandTag("!!bool");
             if ( type == typeof(object[]) )
                 return YamlNode.ExpandTag("!!seq");
-            return "!" + type.FullName;
+
+            return config.TagResolver.TagFromType(type);
         }
 
         public YamlNode ObjectToNode(object obj)

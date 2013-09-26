@@ -5,8 +5,8 @@ using System.Text;
 
 using NUnit.Framework;
 using System.Resources;
-using System.Yaml;
-using System.Yaml.Serialization;
+using YamlSerializer;
+using YamlSerializer.Serialization;
 using YamlSerializerTest.Properties;
 
 namespace YamlSerializerTest

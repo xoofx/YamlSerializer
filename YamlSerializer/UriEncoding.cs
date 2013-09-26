@@ -5,7 +5,7 @@ using System.Text;
 
 using System.Text.RegularExpressions;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// Add string class two methods: .UriEscape(), .UriUnescape()

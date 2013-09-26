@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
-using System.Yaml;
+using YamlSerializer;
 
 namespace YamlSerializerTest
 {

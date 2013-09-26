@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
-using System.Yaml;
-using System.Yaml.Serialization;
+using YamlSerializer;
+using YamlSerializer.Serialization;
 using System.ComponentModel;
 using System.Drawing;
 using System.Collections;
@@ -99,7 +99,7 @@ namespace YamlSerializerTest
             return result;
         }
 
-        YamlSerializer serializer= new YamlSerializer();
+        Serializer serializer= new Serializer();
 
         [Test]
         public void SequentialWrite()
@@ -207,8 +207,15 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                     "!YamlSerializerTest.Test1",
+                    "ClassPropByAssign: ",
+                    "  Capacity: 4",
+                    "  ICollection.Items: ",
+                    "    - abc",
+                    "ClassPropByContent: ",
+                    "  Capacity: 4",
+                    "  ICollection.Items: ",
+                    "    - ghi",
                     "IntArrayField: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]",
-                    "PublicField: 2",
                     "IntArrayFieldBinary: |+2",
                     "  Gor1XAwenmhGkU5ib9NxR11LXxp1iYlH5LH4c9hImTitWSB9Z78II2UvXSXV99A79fj6UBn3GDzbIbd9",
                     "  yBDjAyslYm58iGd/NN+tVjuLRCg3cJBo+PWMbIWm9n4AEC0E7LKXWV5HXUNk7I13APEDWFMM/kWTz2EK",
@@ -217,19 +224,12 @@ namespace YamlSerializerTest
                     "  EJ37T+TA9BuEPJtyGoq+crQMFQtXj1Zriz3HFbReclLvDdVpZlcOHPga/3+3Y509EHZ7UyT7H1xGeJxn",
                     "  eXPrDDb0Ul04MfZb4UYREOfR3HNzNTUYGRsIPUvHOEW7AaoplIfkVQp19DvGBrBqlP2TZ9atlWUHVdth",
                     "  7lIBeIh0wiXxoOpCbQ7qVP9GkioQUrMkOcAJaad3exyZaOsXxznFCA==",
+                    "PublicField: 2",
+                    "PublicProp: 3",
                     "ReadOnlyClassProp: ",
                     "  Capacity: 4",
                     "  ICollection.Items: ",
-                    "    - def",
-                    "ClassPropByAssign: ",
-                    "  Capacity: 4",
-                    "  ICollection.Items: ",
-                    "    - abc",
-                    "PublicProp: 3",
-                    "ClassPropByContent: ",
-                    "  Capacity: 4",
-                    "  ICollection.Items: ",
-                    "    - ghi"
+                    "    - def"
                     ),
                     yaml);
 
@@ -294,7 +294,7 @@ namespace YamlSerializerTest
                     "  - ghi",
                     "  - \"1\"",
                     "- !System.Drawing.Point 1, 3",
-                    "- !System.Yaml.YamlScalar",
+                    "- !YamlSerializer.YamlScalar",
                     "  Tag: tag:yaml.org,2002:str",
                     "  Value: brabrabra"
                     ),
@@ -519,21 +519,21 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                     "!System.Drawing.Pen",
-                    "Transform: ",
-                    "  Elements: [1, 0, 0, 1, 0, 0]",
-                    "CompoundArray: []",
                     "Alignment: Center",
-                    "LineJoin: Miter",
-                    "DashCap: Flat",
-                    "Width: 10",
                     "Brush: !System.Drawing.SolidBrush",
                     "  Color: 255, 255, 255",
-                    "EndCap: Flat",
-                    "DashOffset: 0",
-                    "MiterLimit: 10",
                     "Color: 255, 255, 255",
+                    "CompoundArray: []",
+                    "DashCap: Flat",
+                    "DashOffset: 0",
+                    "DashStyle: Solid",
+                    "EndCap: Flat",
+                    "LineJoin: Miter",
+                    "MiterLimit: 10",
                     "StartCap: Flat",
-                    "DashStyle: Solid"
+                    "Transform: ",
+                    "  Elements: [1, 0, 0, 1, 0, 0]",
+                    "Width: 10"
                     ),
                 yaml);
             // obj = serializer.Deserialize(yaml);
@@ -772,8 +772,11 @@ namespace YamlSerializerTest
                 "  - abc",
                 "  - 1",
                 "  - !YamlSerializerTest.Test1",
+                "    ClassPropByAssign: ",
+                "      Capacity: 0",
+                "    ClassPropByContent: ",
+                "      Capacity: 0",
                 "    IntArrayField: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]",
-                "    PublicField: 0",
                 "    IntArrayFieldBinary: |+2",
                 "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -782,12 +785,9 @@ namespace YamlSerializerTest
                 "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 "      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-                "    ReadOnlyClassProp: ",
-                "      Capacity: 0",
-                "    ClassPropByAssign: ",
-                "      Capacity: 0",
+                "    PublicField: 0",
                 "    PublicProp: 0",
-                "    ClassPropByContent: ",
+                "    ReadOnlyClassProp: ",
                 "      Capacity: 0"
                 ),
                 yaml
@@ -804,8 +804,8 @@ namespace YamlSerializerTest
                     "!System.Collections.Hashtable",
                     "IDictionary.Entries: ",
                     "  10: 5",
-                    "  !YamlSerializerTest.TestEnum あいう: 5",
-                    "  abc: 123"
+                    "  abc: 123",
+                    "  !YamlSerializerTest.TestEnum あいう: 5"
                     ),
                     yaml);
             Assert.AreEqual(yaml, serializer.Serialize(serializer.Deserialize(yaml)[0]));
@@ -814,7 +814,7 @@ namespace YamlSerializerTest
         [Test]
         public void TestCustomActivator()
         {
-            var serializer = new YamlSerializer();
+            var serializer = new Serializer();
             var yaml =
               @"%YAML 1.2
 ---
@@ -832,7 +832,7 @@ Color: Red
 
             var config = new YamlConfig();
             config.AddActivator<SolidBrush>(() => new SolidBrush(Color.Black));
-            serializer = new YamlSerializer(config);
+            serializer = new Serializer(config);
 
             // Now the serializer knows how to activate an instance of SolidBrush.
             b = (SolidBrush)serializer.Deserialize(yaml)[0];
@@ -863,7 +863,7 @@ Color: Red
         {
             var obj = new TestClass();
             obj.list.Add(new ChildClass());
-            var serializer = new YamlSerializer();
+            var serializer = new Serializer();
             var yaml= serializer.Serialize(obj);
             Assert.AreEqual(
                 BuildResult(
@@ -879,7 +879,7 @@ Color: Red
 
             var config = new YamlConfig();
             config.OmitTagForRootNode = true;
-            serializer = new YamlSerializer(config);
+            serializer = new Serializer(config);
             yaml = serializer.Serialize(obj);
             Assert.AreEqual(
                 BuildResult(

@@ -5,13 +5,8 @@ using System.Text;
 
 using System.Diagnostics;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
-    interface IRehashableKey
-    {
-        event EventHandler Changed;
-    }
-
     /// <summary>
     /// <para>Dictionary that automatically rehash when the content of a key is changed.
     /// Keys of this dictionary must implement <see cref="IRehashableKey"/>.</para>
@@ -20,7 +15,7 @@ namespace System.Yaml
     /// </summary>
     /// <typeparam name="K">Type of key. Must implements <see cref="IRehashableKey"/>.</typeparam>
     /// <typeparam name="V">Type of value.</typeparam>
-    class RehashableDictionary<K, V>: IDisposable, IDictionary<K, V>
+    internal class RehashableDictionary<K, V>: IDisposable, IDictionary<K, V>
         where K: class, IRehashableKey
     {
         class KeyValue

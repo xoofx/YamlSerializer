@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
-using System.Yaml;
-using System.Yaml.Serialization;
+using YamlSerializer;
+using YamlSerializer.Serialization;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -51,7 +51,7 @@ namespace YamlSerializerTest
             return result;
         }
 
-        YamlSerializer YamlSerializer = new YamlSerializer();
+        Serializer YamlSerializer = new Serializer();
 
         [Test]
         public void TestPrimitiveScalars()
@@ -232,51 +232,52 @@ namespace YamlSerializerTest
                 o
             };
 
+            var text = YamlSerializer.Serialize(array1);
             Assert.AreEqual(
-                BuildResult(
-                    "- True",
-                    "- False",
-                    "- !System.Byte 1",
-                    "- !System.SByte 1",
-                    "- !System.Char a",
-                    "- !System.Char \"\\n\"",
-                    "- !System.Char \"\\r\"",
-                    "- !System.Char \"\\0\"",
-                    "- !System.Char \"\\x03\"",
-                    "- !System.Byte 1",
-                    "- !System.SByte 1",
-                    "- !!float 1",
-                    "- 1.1",
-                    "- -1.1",
-                    "- -1.1E-10",
-                    "- !System.Single 1",
-                    "- !System.Single 1.1",
-                    "- 1",
-                    "- -1",
-                    "- !System.UInt32 1",
-                    "- !System.Int64 1",
-                    "- !System.UInt64 1",
-                    "- !System.Int16 1",
-                    "- !System.UInt16 1",
-                    "- null",
-                    "- !System.Decimal 1",
-                    "- !YamlSerializerTest.YamlRepresenterTest%2BTestEnum abc",
-                    "- !YamlSerializerTest.YamlRepresenterTest%2BTestEnum あいう",
-                    "- \"null\"",
-                    "- \"1\"",
-                    "- \"-1\"",
-                    "- \"-1.0E12\"",
-                    "- \"True\"",
-                    @"- ""\0\a\b"+"\t"+@"\v\f\e\""/\\\N\_\L\P""",
-                    "- \"abc\\n\"",
-                    @"- ""abc\n\",
-                    @"  \ abc""",
-                    "- \"null\"",
-                    "- &A !System.Object {}",
-                    "- *A"
-                ),
-                YamlSerializer.Serialize(array1)
-            );
+                @"%YAML 1.2
+---
+- True
+- False
+- !System.Byte 1
+- !System.SByte 1
+- !System.Char a
+- !System.Char ""\n""
+- !System.Char ""\r""
+- !System.Char ""\0""
+- !System.Char ""\x03""
+- !System.Byte 1
+- !System.SByte 1
+- !!float 1
+- 1.1
+- -1.1
+- -1.1E-10
+- !System.Single 1
+- !System.Single 1.1
+- 1
+- -1
+- !System.UInt32 1
+- !System.Int64 1
+- !System.UInt64 1
+- !System.Int16 1
+- !System.UInt16 1
+- null
+- !System.Decimal 1
+- !YamlSerializerTest.YamlRepresenterTest%2BTestEnum abc
+- !YamlSerializerTest.YamlRepresenterTest%2BTestEnum あいう
+- ""null""
+- ""1""
+- ""-1""
+- ""-1.0E12""
+- ""True""
+- ""\0\a\b	\v\f\e\""/\\\N\_\L\P""
+- ""abc\n""
+- ""abc\n\
+  \ abc""
+- ""null""
+- &A !System.Object {}
+- *A
+...
+", text);
         }
 
         [Test]
@@ -389,9 +390,9 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1",
-                "c: null",
+                "a: 0",
                 "b: 0",
-                "a: 0"
+                "c: null"
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -402,9 +403,9 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1",
-                "c: \"1\"",
+                "a: 2",
                 "b: 1.2",
-                "a: 2"
+                "c: \"1\""
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -413,10 +414,10 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult(
                 "!YamlSerializerTest.YamlRepresenterTest%2BTestStruct1",
-                "e: 1",
-                "c: \"1\"",
+                "a: 2",
                 "b: 1.2",
-                "a: 2"
+                "c: \"1\"",
+                "e: 1"
                 ),
                 YamlSerializer.Serialize(s1)
             );
@@ -710,14 +711,14 @@ namespace YamlSerializerTest
         {
             var config = new YamlConfig();
             config.Culture = new System.Globalization.CultureInfo("da-DK");
-            var serializer = new YamlSerializer(config);
+            var serializer = new Serializer(config);
             object obj = new System.Drawing.PointF(1.2f, 3.1f);
             var yaml = serializer.Serialize(obj);
             Assert.AreEqual(
                 BuildResult(
                     "!System.Drawing.PointF",
-                    "Y: 3,1",
-                    "X: 1,2"
+                    "X: 1,2",
+                    "Y: 3,1"
                     ),
                 yaml
                 );

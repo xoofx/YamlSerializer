@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using System.Text.RegularExpressions;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// Validates a text as a global tag in YAML.

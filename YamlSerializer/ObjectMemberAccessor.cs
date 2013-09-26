@@ -5,7 +5,7 @@ using System.Text;
 
 using System.ComponentModel;
 
-namespace System.Yaml.Serialization
+namespace YamlSerializer.Serialization
 {
     /// <summary>
     /// 

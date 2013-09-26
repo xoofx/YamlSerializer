@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
-using System.Yaml;
-using System.Yaml.Serialization;
+using YamlSerializer;
+using YamlSerializer.Serialization;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 
@@ -15,10 +16,10 @@ namespace YamlSerializerTest
     [TestFixture]
     public class YamlConstructorTest
     {
-        YamlSerializer serializer;
+        Serializer serializer;
         public YamlConstructorTest()
         {
-            serializer= new YamlSerializer();
+            serializer= new Serializer();
         }
 
         [Test]
@@ -165,7 +166,7 @@ namespace YamlSerializerTest
         [Test]
         public void TagResolver()
         {
-            YamlSerializer serialiser = new YamlSerializer();
+            var serialiser = new Serializer();
             var m = ( new Regex(@"([-+]?)([0-9]+)") ).Match("0123");
             
             Assert.AreEqual(123, serialiser.Deserialize("123")[0]);
@@ -269,7 +270,7 @@ namespace YamlSerializerTest
             Assert.AreEqual(new DateTime(1999, 12, 30, 23, 00, 00, 010, DateTimeKind.Utc).ToLocalTime(), serializer.Deserialize("1999-12-31 1:00:00.010 +2")[0]);
             Assert.AreEqual(new DateTime(2000, 1, 1, 1, 00, 00, 000, DateTimeKind.Utc).ToLocalTime(), serializer.Deserialize("1999-12-31 23:00:00 -2")[0]);
 
-            Assert.AreEqual("1999/12/30 23:00:00", ( new DateTime(1999, 12, 30, 23, 00, 00, 010) ).ToString());
+            Assert.AreEqual("1999/12/30 23:00:00", (new DateTime(1999, 12, 30, 23, 00, 00, 010)).ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture));
             YamlScalar node;
             YamlNode.DefaultConfig.TagResolver.Encode(time, out node);
             var recovered = DateTime.Parse(node.Value);

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// Converts YamlNode tree into yaml text.
@@ -56,13 +53,23 @@ namespace System.Yaml
 
             column = 1;
             raw = 1;
-            WriteLine("%YAML 1.2");
-            WriteLine("---");
+
+            if (config.EmitYamlVersion)
+            {
+                WriteLine("%YAML 1.2");
+            }
+            if (config.EmitStartAndEndOfDocument)
+            {
+                WriteLine("---");
+            }
             NodeToYaml(node, "", Context.Normal);
-            WriteLine("...");
+            if (config.EmitStartAndEndOfDocument)
+            {
+                WriteLine("...");
+            }
         }
 
-        static void MarkMultiTimeAppearingChildNodesToBeAnchored(YamlNode node)
+        void MarkMultiTimeAppearingChildNodesToBeAnchored(YamlNode node)
         {
             var AlreadyAppeared = new Dictionary<YamlNode, bool>(
                     TypeUtils.EqualityComparerByRef<YamlNode>.Default);
@@ -89,6 +96,7 @@ namespace System.Yaml
                 }
                 if ( n is YamlMapping ) {
                     var map = (YamlMapping)n;
+
                     foreach ( var child in map ) {
                         analyze(child.Key);
                         analyze(child.Value);
@@ -96,6 +104,18 @@ namespace System.Yaml
                 }
             };
             analyze(node);
+        }
+
+        private static string OnKeySelector(KeyValuePair<YamlNode, YamlNode> pair)
+        {
+
+            var scalar = pair.Key as YamlScalar;
+            if (scalar != null)
+            {
+                return scalar.Value;
+            }
+
+            return string.Empty;
         }
 
         internal static string NextAnchor(string anchor) // this is "protected" for test use 
@@ -110,7 +130,7 @@ namespace System.Yaml
             }
         }
 
-        private enum Context
+        internal enum Context
         {
             Normal,
             List,
@@ -164,7 +184,7 @@ namespace System.Yaml
         private void NodeToYaml(YamlNode node, string pres, Context c)
         {
             if ( node.Properties.ContainsKey("ToBeAnchored") ) {
-                node.Raw = raw;
+                node.Row = raw;
                 node.Column = column;
                 Write("&" + node.Properties["Anchor"] + " ");
                 node.Properties.Remove("ToBeAnchored");
@@ -177,7 +197,7 @@ namespace System.Yaml
                     }
                     return;
                 }
-                node.Raw = raw;
+                node.Row = raw;
                 node.Column = column;
             }
 
@@ -260,9 +280,9 @@ namespace System.Yaml
         private static Regex OneLine = new Regex(@"^([^\n\r]|\n)*(\r?\n|\r)?$");
         private static Regex UntilBreak = new Regex(@"[^\r\n]*(\r?\n|\r)");
 
-        class DoubleQuote: Parser<DoubleQuote.State>
+        internal class DoubleQuote: Parser<DoubleQuote.State>
         {
-            struct State { }
+            internal struct State { }
             Func<char, bool> nbDoubleSafeCharset = Charset(c =>
                 ( 0x100 <= c && c != '\u2028' && c != '\u2029' ) ||
                 c == 0x09 ||
@@ -294,7 +314,7 @@ namespace System.Yaml
                 return false;
             }
 
-            public string Quote(string s, string pres, Context c)
+            internal string Quote(string s, string pres, Context c)
             {
                 base.Parse(() => DoubleQuoteString(pres, c), s);
                 return "\"" + stringValue.ToString() + "\"";
@@ -430,7 +450,12 @@ namespace System.Yaml
                     c = Context.Normal;
                 }
                 string press = pres + "  ";
-                foreach ( var item in node ) {
+
+                // Serialize by keeping an order on the keys (default true) in order to have a more predictive output for 
+                // versionning, comparison, editing...etc.
+                var it = config.OrderMappingKeyByName ? (IEnumerable<KeyValuePair<YamlNode, YamlNode>>)node.OrderBy(OnKeySelector) : node;
+
+                foreach ( var item in it ) {
                     if ( c != Context.List )
                         Write(pres);
                     c = Context.Normal;

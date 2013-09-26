@@ -5,7 +5,7 @@ using System.Text;
 
 using NUnit.Framework;
 using System.Resources;
-using System.Yaml;
+using YamlSerializer;
 using YamlSerializerTest.Properties;
 
 namespace YamlSerializerTest
@@ -278,41 +278,43 @@ namespace YamlSerializerTest
         [Test]
         public void TestMaps()
         {
-            Assert.AreEqual(
-                BuildResult(
-                    "? a12345678901234567890123456789012345678901234567890123456789012345678901234567890", // too long to be implicit key
-                    ": \"1\"",
-                    "? !SomeType",
-                    "  - a",
-                    "  - b",
-                    "  - c",
-                    ": !some",
-                    "  !ab abc: b",
-                    "\"@\": ",
-                    "  c: ",
-                    "    - b",
-                    "    - c",
-                    "  a: b",
-                    "\"1\": 3.3",
-                    "abc: def",
-                    "? - a",
-                    "  - b",
-                    ": b"
-                ),
-                YamlPresenter.ToYaml(
-                    map(
-                        str("abc"), str("def"),
-                        seq( str("a"), str("b") ), str("b"),
-                        str("1"), str("!!float", "3.3"),
-                        str("@"), map(
-                                str("a"), str("b"),
-                                str("c"), seq(str("b"), str("c"))
-                            ),
-                        seq_tag("!SomeType", str("a"), str("b"), str("c")), map_tag("!some", str("!ab", "abc"), str("b")),
-                        str("a12345678901234567890123456789012345678901234567890123456789012345678901234567890"), str("1")
+            var text = YamlPresenter.ToYaml(
+                map(
+                    str("abc"), str("def"),
+                    seq(str("a"), str("b")), str("b"),
+                    str("1"), str("!!float", "3.3"),
+                    str("@"), map(
+                        str("a"), str("b"),
+                        str("c"), seq(str("b"), str("c"))
+                                  ),
+                    seq_tag("!SomeType", str("a"), str("b"), str("c")), map_tag("!some", str("!ab", "abc"), str("b")),
+                    str("a12345678901234567890123456789012345678901234567890123456789012345678901234567890"), str("1")
                     )
-                )
-            );
+                );
+
+            Assert.AreEqual(
+@"%YAML 1.2
+---
+? !SomeType
+  - a
+  - b
+  - c
+: !some
+  !ab abc: b
+? - a
+  - b
+: b
+""@"": 
+  a: b
+  c: 
+    - b
+    - c
+""1"": 3.3
+? a12345678901234567890123456789012345678901234567890123456789012345678901234567890
+: ""1""
+abc: def
+...
+",text);
         }
 
         YamlScalar str(string tag, string value, string expect)

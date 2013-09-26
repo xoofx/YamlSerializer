@@ -6,7 +6,7 @@ using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// Type 関連のユーティリティメソッド

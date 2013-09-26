@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using System.Text.RegularExpressions;
-using System.Diagnostics;
-
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// <para>A text parser for<br/>
@@ -283,7 +279,7 @@ namespace System.Yaml
             if ( state.tag == null || state.tag == "" /* ! was specified */ )
                 state.tag = YamlNode.DefaultTagPrefix + "str";
             var value = new YamlScalar(state.tag, stringValue.ToString());
-            value.Raw = pos.Raw;
+            value.Row = pos.Row;
             value.Column = pos.Column;
             stringValue.Length = 0;
             RegisterAnchorFor(value);
@@ -296,7 +292,7 @@ namespace System.Yaml
                 state.tag = YamlNode.DefaultTagPrefix + "seq";
             var seq = new YamlSequence();
             seq.Tag = state.tag;
-            seq.Raw = pos.Raw;
+            seq.Row = pos.Row;
             seq.Column = pos.Column;
             RegisterAnchorFor(seq);
             state.tag = null;
@@ -308,7 +304,7 @@ namespace System.Yaml
                 state.tag = YamlNode.DefaultTagPrefix + "map";
             var map = new YamlMapping();
             map.Tag = state.tag;
-            map.Raw = pos.Raw;
+            map.Row = pos.Row;
             map.Column = pos.Column;
             RegisterAnchorFor(map);
             state.tag = null;

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using System.Text.RegularExpressions;
 
-namespace System.Yaml
+namespace YamlSerializer
 {
     /// <summary>
     /// Represents the way to automatically resolve Tag from the Value of a YamlScalar.
     /// </summary>
     internal class YamlTagResolver
     {
+        private Dictionary<string, Type> aliasTagToType = new Dictionary<string, Type>();
+        private Dictionary<Type, string> aliasTypeToTag = new Dictionary<Type, string>();
+
         /// <summary>
         /// Create TagResolver with default resolution rules.
         /// </summary>
@@ -84,10 +84,26 @@ namespace System.Yaml
 
         public Type TypeFromTag(string tag)
         {
+            Type type;
             tag= YamlNode.ExpandTag(tag);
-            if ( types.ContainsKey(tag) )
-                return types[tag][0].GetTypeOfValue();
+            if (!aliasTagToType.TryGetValue(tag, out type))
+            {
+                if (types.ContainsKey(tag))
+                    return types[tag][0].GetTypeOfValue();
+            }
+
             return null;
+        }
+
+        public string TagFromType(Type type)
+        {
+            string tag;
+            if (!aliasTypeToTag.TryGetValue(type, out tag))
+            {
+                return "!" + type.FullName;
+            }
+
+            return tag;
         }
 
         /// <summary>
@@ -126,11 +142,17 @@ namespace System.Yaml
                 Update();
         }
 
+        public void AddTagAlias<T>(string tag)
+        {
+            if (tag == null) throw new ArgumentNullException("tag");
+
+            aliasTagToType[tag] = typeof (T);
+            aliasTypeToTag[typeof (T)] = tag;
+        }
+
         public void AddRule<T>(string regex, Func<Match, T> decode, Func<T, string> encode)
         {
-            Rules.Add(new YamlTagResolutionRule<T>("!"+typeof(T).FullName, regex, decode, encode));
-            if ( UpdateCounter == 0 )
-                Update();
+            AddRule<T>("!" + typeof (T).FullName, regex, decode, encode);
         }
 
         int UpdateCounter = 0;
@@ -189,7 +211,7 @@ namespace System.Yaml
 
             TypeToRule = new Dictionary<Type, YamlTagResolutionRule>();
             foreach ( var rule in Rules ) 
-                if(rule.HasEncoder())
+                if (rule.HasEncoder())
                     TypeToRule[rule.GetTypeOfValue()] = rule;
         }
 
@@ -237,7 +259,7 @@ namespace System.Yaml
         {
             node = null;
             YamlTagResolutionRule rule;
-            if ( !TypeToRule.TryGetValue(obj.GetType(), out rule) )
+            if ( !TypeToRule.TryGetValue(obj.GetType(), out rule))
                 return false;
             node = new YamlScalar(rule.Tag, rule.Encode(obj));
             return true;
@@ -266,6 +288,7 @@ namespace System.Yaml
             Decoder = decoder;
             Encoder = encoder;
         }
+
         private Func<Match, T> Decoder;
         private Func<T, string> Encoder;
         public override object Decode(Match m)
