@@ -110,7 +110,7 @@ namespace YamlSerializer.Serialization
             }
 
             // TypeConverterAttribute 
-            if ( EasyTypeConverter.IsTypeConverterSpecified(type) )
+            if ( TypeConverterRegistry.IsTypeConverterSpecified(type) )
                 return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj));
 
             // array
@@ -132,9 +132,9 @@ namespace YamlSerializer.Serialization
         private YamlNode CreateArrayNode(Array array)
         {
             Type type = array.GetType();
-            return CreateArrayNodeSub(array, 0, new long[type.GetArrayRank()]);
+            return CreateArrayNodeSub(array, 0, new int[type.GetArrayRank()]);
         }
-        private YamlNode CreateArrayNodeSub(Array array, int i, long[] indices)
+        private YamlNode CreateArrayNodeSub(Array array, int i, int[] indices)
         {
             var type= array.GetType();
             var element = type.GetElementType();
@@ -168,27 +168,14 @@ namespace YamlSerializer.Serialization
         {
             var type = array.GetType();
             var element = type.GetElementType();
-            if ( !TypeUtils.IsPureValueType(element) )
+            if (typeof (byte) != element || array.Rank != 1 )
+            {
                 throw new InvalidOperationException(
-                    "Can not serialize {0} as binary because it contains non-value-type(s).".DoFormat(type.FullName));
-            var elementSize = Marshal.SizeOf(element);
-            var binary = new byte[array.LongLength * elementSize];
-            int j = 0;
-            for ( int i = 0; i < array.Length; i++ ) {
-                IntPtr p = Marshal.UnsafeAddrOfPinnedArrayElement(array, i);
-                Marshal.Copy(p, binary, j, elementSize);
-                j += elementSize;
+                    "Can not serialize {0} as binary because it is not a byte[] array.".DoFormat(type.FullName));
             }
-            var dimension = "";
-            if ( array.Rank > 1 ) {
-                for ( int i = 0; i < array.Rank; i++ ) {
-                    if ( dimension != "" )
-                        dimension += ", ";
-                    dimension += array.GetLength(i);
-                }
-                dimension = "[" + dimension + "]\r\n";
-            }
-            var result= str(TypeNameToYamlTag(type), dimension + Base64Encode(type, binary));
+
+            var binary = (byte[]) array;
+            var result= str(TypeNameToYamlTag(type), Base64Encode(type, binary));
             result.Properties["Don'tCareLineBreaks"] = "true";
             return result;
         }

@@ -57,10 +57,10 @@ namespace YamlSerializerTest
         public void TestPrimitiveScalars()
         {
             Assert.AreEqual(
-                BuildResult("True"),
+                BuildResult("true"),
                 YamlSerializer.Serialize(true));
             Assert.AreEqual(
-                BuildResult("False"),
+                BuildResult("false"),
                 YamlSerializer.Serialize(false));
             Assert.AreEqual(
                 BuildResult("!System.Byte 1"),
@@ -151,10 +151,12 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 BuildResult("!YamlSerializerTest.YamlRepresenterTest%2BTestEnum abc, あいう"),
                 YamlSerializer.Serialize(TestEnum.abc | TestEnum.あいう));
-            var converter = new EasyTypeConverter();
-            Assert.AreEqual(
-                TestEnum.abc | TestEnum.あいう,
-                converter.ConvertFromString("abc, あいう", typeof(TestEnum)));
+
+            // TODO How to replace this
+            //var converter = new TypeConverterRegistry();
+            //Assert.AreEqual(
+            //    TestEnum.abc | TestEnum.あいう,
+            //    converter.ConvertFromString("abc, あいう", typeof(TestEnum)));
         }
 
         [Test]
@@ -236,8 +238,8 @@ namespace YamlSerializerTest
             Assert.AreEqual(
                 @"%YAML 1.2
 ---
-- True
-- False
+- true
+- false
 - !System.Byte 1
 - !System.SByte 1
 - !System.Char a

@@ -50,8 +50,8 @@ namespace YamlSerializer.Serialization
             // public properties
             foreach ( var p in type.GetProperties(
                     System.Reflection.BindingFlags.Instance | 
-                    System.Reflection.BindingFlags.Public | 
-                    System.Reflection.BindingFlags.GetProperty) ) {
+                    System.Reflection.BindingFlags.Public
+                    ) ) {
                 var prop = p; // create closures with this local variable
                 // not readable or parameters required to access the property
                 if ( !prop.CanRead || prop.GetGetMethod(false) == null || prop.GetIndexParameters().Count() != 0 )
@@ -65,8 +65,7 @@ namespace YamlSerializer.Serialization
 
             // public fields
             foreach ( var f in type.GetFields(System.Reflection.BindingFlags.Instance |
-                    System.Reflection.BindingFlags.Public |
-                    System.Reflection.BindingFlags.GetField) ) {
+                    System.Reflection.BindingFlags.Public) ) {
                 var field = f;
                 if ( !field.IsPublic )
                     continue;
@@ -95,7 +94,7 @@ namespace YamlSerializer.Serialization
                     CollectionAdd = (obj, value) => add.Invoke(obj, new object[] { value });
                     var clear = itype.GetMethod("Clear", new Type[0]);
                     CollectionClear = obj => clear.Invoke(obj, new object[0]);
-                    var isReadOnly = itype.GetProperty("IsReadOnly", new Type[0]).GetGetMethod();
+                    var isReadOnly = itype.GetProperty("IsReadOnly").GetGetMethod();
                     IsReadOnly = obj => (bool)isReadOnly.Invoke(obj, new object[0]);
                 } else
                     // implements IList 
@@ -158,8 +157,7 @@ namespace YamlSerializer.Serialization
             //      DefaultValueAttribute(default) => compare to it
             //      otherwise => true
             var shouldSerialize = type.GetMethod("ShouldSerialize" + m.Name,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                null, Type.EmptyTypes, new System.Reflection.ParameterModifier[0]);
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             if ( shouldSerialize != null && shouldSerialize.ReturnType == typeof(bool) && accessor.ShouldSeriealize == null )
                 accessor.ShouldSeriealize = obj => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray);
             var attr2 = m.GetAttribute<DefaultValueAttribute>();

@@ -34,59 +34,41 @@ namespace YamlSerializerTest
         YamlParser parser = new YamlParser();
         void AssertSuccessRestored(object obj)
         {
+            
+
             var yaml = serializer.Serialize(obj);
             var nodes = parser.Parse(yaml);
             Assert.AreEqual(1, nodes.Count);
-            var restored = constructor.NodeToObject(nodes[0], YamlNode.DefaultConfig);
+            var yamlConfig = new YamlConfig();
+            yamlConfig.LookupAssemblies.Add(typeof(YamlConstructorTest).Assembly);
+            var restored = constructor.NodeToObject(nodes[0], yamlConfig);
             var yaml2 = serializer.Serialize(restored);
             Assert.AreEqual(yaml, yaml2);
         }
 
         [Flags]
-        enum TestEnum { abc = 1, あいう = 2 }
+        public enum TestEnum { abc = 1, あいう = 2 }
 
-        [TypeConverter(typeof(TestStructTypeConverter))]
+        [YamlTypeConverter(typeof(TestStructTypeConverter))]
         struct TestStructWithTypeConverter
         {
             public int a, b;
         }
 
-        class TestStructTypeConverter: TypeConverter
+        class TestStructTypeConverter: ITypeConverter
         {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            public object ConvertFromString(object context, System.Globalization.CultureInfo culture, string value)
             {
-                if ( sourceType == typeof(string) ) {
-                    return true;
-                }
-                return base.CanConvertFrom(context, sourceType);
+                string[] v = ( (string)value ).Split(new char[] { ',' });
+                var result = new TestStructWithTypeConverter();
+                result.a = int.Parse(v[0]);
+                result.b = int.Parse(v[1]);
+                return result;
             }
 
-            public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+            public string ConvertToString(object context, System.Globalization.CultureInfo culture, object value)
             {
-                if ( value is string ) {
-                    string[] v = ( (string)value ).Split(new char[] { ',' });
-                    var result = new TestStructWithTypeConverter();
-                    result.a = int.Parse(v[0]);
-                    result.b = int.Parse(v[1]);
-                    return result;
-                }
-                return base.ConvertFrom(context, culture, value);
-            }
-
-            public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-            {
-                if ( destinationType == typeof(string) ) {
-                    return true;
-                }
-                return base.CanConvertFrom(context, destinationType);
-            }
-
-            public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
-            {
-                if ( destinationType == typeof(string) ) {
-                    return ( (TestStructWithTypeConverter)value ).a + "," + ( (TestStructWithTypeConverter)value ).b;
-                }
-                return base.ConvertTo(context, culture, value, destinationType);
+                return ( (TestStructWithTypeConverter)value ).a + "," + ( (TestStructWithTypeConverter)value ).b;
             }
         }
 

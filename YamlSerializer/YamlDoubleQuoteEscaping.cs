@@ -51,11 +51,12 @@ namespace YamlSerializer
 
             // Create unescaping regex
             var pattern = "";
-            unescapeTable.Keys.ToList().ForEach(esc => {
+            foreach(var esc in unescapeTable.Keys.ToList())
+            {
                 if ( pattern != "" )
                     pattern += "|";
                 pattern += Regex.Escape(esc);
-            });
+            }
             unescapeRegexp = new Regex(pattern +
                 @"|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}");
         }

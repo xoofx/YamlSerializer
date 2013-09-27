@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using YamlSerializer.Serialization;
 
@@ -446,6 +448,9 @@ namespace YamlSerializer
         internal ObjectActivator Activator = 
             new ObjectActivator();
 
+
+        public readonly List<Assembly> LookupAssemblies = new List<Assembly>();
+
         /// <summary>
         /// Gets or sets CultureInfo with which the .NET native values are converted
         /// to / from string. Currently, this is not to be changed from CultureInfo.InvariantCulture.
@@ -454,7 +459,7 @@ namespace YamlSerializer
             get { return TypeConverter.Culture; }
             set { TypeConverter.Culture = value; }
         }
-        internal EasyTypeConverter TypeConverter =
-            new EasyTypeConverter();
+        internal TypeConverterRegistry TypeConverter =
+            new TypeConverterRegistry();
     }
 }

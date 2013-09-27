@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace YamlSerializer
 {
@@ -27,6 +27,19 @@ namespace YamlSerializer
     /// </example>
     internal static class TypeUtils
     {
+
+        public static Type GetInterface(this Type type, string interfaceName)
+        {
+            foreach (var interfaceType in type.GetInterfaces())
+            {
+                if (interfaceType.Name == interfaceName)
+                {
+                    return interfaceType;
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// Type や PropertyInfo, FieldInfo から指定された型の属性を取り出して返す
         /// 複数存在した場合には最後の値を返す
@@ -50,15 +63,12 @@ namespace YamlSerializer
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Type GetType(string name)
+        public static Type GetType(List<Assembly> assemblies, string name)
         {
             if ( AvailableTypes.ContainsKey(name) )
                 return AvailableTypes[name];
-            Type type = Type.GetType(name);
-            if ( type == null ) // ロードされているすべてのアセンブリから探す
-                type = System.AppDomain.CurrentDomain.GetAssemblies().Select(
-                        asm => asm.GetType(name)).FirstOrDefault(t => t != null);
-            return AvailableTypes[name] = type;
+
+            return AvailableTypes[name] = Type.GetType(name) ?? assemblies.Select(asm => asm.GetType(name)).FirstOrDefault(t => t != null);
         }
         static Dictionary<string, Type> AvailableTypes = new Dictionary<string, Type>();
 
@@ -78,8 +88,7 @@ namespace YamlSerializer
             if ( !type.IsValueType )
                 return false;
             // struct
-            foreach ( var f in type.GetFields(
-                    BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance) )
+            foreach ( var f in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance) )
                 if ( !IsPureValueType(f.FieldType) )
                     return false;
             return true;
@@ -266,21 +275,22 @@ namespace YamlSerializer
             /// </summary>
             static HashCodeByRef()
             {
-                var dm = new DynamicMethod(
-                    "GetHashCodeByRef",                 // name of the dynamic method
-                    typeof(int),                        // type of return value
-                    new Type[] { 
-                        typeof(T)                       // type of "this"
-                    },
-                    typeof(EqualityComparerByRef<T>));  // owner
+                //var dm = new DynamicMethod(
+                //    "GetHashCodeByRef",                 // name of the dynamic method
+                //    typeof(int),                        // type of return value
+                //    new Type[] { 
+                //        typeof(T)                       // type of "this"
+                //    },
+                //    typeof(EqualityComparerByRef<T>));  // owner
 
-                var ilg = dm.GetILGenerator();
+                //var ilg = dm.GetILGenerator();
 
-                ilg.Emit(OpCodes.Ldarg_0);                          // push "this" on the stack
-                ilg.Emit(OpCodes.Call,
-                        typeof(object).GetMethod("GetHashCode"));   // returned value is on the stack
-                ilg.Emit(OpCodes.Ret);                              // return
-                GetHashCode = (Func<T, int>)dm.CreateDelegate(typeof(Func<T, int>));
+                //ilg.Emit(OpCodes.Ldarg_0);                          // push "this" on the stack
+                //ilg.Emit(OpCodes.Call,
+                //        typeof(object).GetMethod("GetHashCode"));   // returned value is on the stack
+                //ilg.Emit(OpCodes.Ret);                              // return
+                //GetHashCode = (Func<T, int>)dm.CreateDelegate(typeof(Func<T, int>));
+                GetHashCode = RuntimeHelpers.GetHashCode;
             }
         }
 

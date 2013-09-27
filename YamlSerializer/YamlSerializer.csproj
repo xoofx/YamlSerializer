@@ -63,7 +63,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultTypeConverters.cs" />
     <Compile Include="IRehashableKey.cs" />
+    <Compile Include="ITypeConverter.cs" />
+    <Compile Include="ListExtensions.cs" />
+    <Compile Include="SortedDictionary.cs" />
+    <Compile Include="StringUtils.cs" />
+    <Compile Include="YamlTypeConverterAttribute.cs" />
     <Compile Include="Serialization\ObjectActivator.cs" />
     <Compile Include="ParseErrorException.cs" />
     <Compile Include="RehashableDictionary.cs" />
@@ -71,7 +77,7 @@
     <Compile Include="StringYamlDoubleQuoteEscapeExtention.cs" />
     <Compile Include="YamlConfig.cs" />
     <Compile Include="YamlDoubleQuoteEscaping.cs" />
-    <Compile Include="Serialization\EasyTypeConverter.cs" />
+    <Compile Include="Serialization\TypeConverterRegistry.cs" />
     <Compile Include="ObjectMemberAccessor.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -108,6 +114,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

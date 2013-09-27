@@ -698,16 +698,6 @@ namespace YamlSerializer.Serialization
             var node = representer.ObjectToNode(obj, c);
             node.ToYaml(tw, c);
         }
-        /// <summary>
-        /// Serialize C# object <paramref name="obj"/> into YAML text and save it into a file named as <paramref name="YamlFileName"/>.
-        /// </summary>
-        /// <param name="YamlFileName">A file name to which the YAML text is written.</param>
-        /// <param name="obj">Object to be serialized.</param>
-        public void SerializeToFile(string YamlFileName, object obj)
-        {
-            using ( var s = new FileStream(YamlFileName, FileMode.Create, FileAccess.Write) )
-                Serialize(s, obj);
-        }
 
         /// <summary>
         /// Deserialize C# object(s) from a YAML text. Since a YAML text can contain multiple YAML documents, each of which 
@@ -756,19 +746,6 @@ namespace YamlSerializer.Serialization
         public object[] Deserialize(TextReader tr, params Type[] types)
         {
             return Deserialize(tr.ReadToEnd(), types);
-        }
-        /// <summary>
-        /// Deserialize C# object(s) from a YAML text in a file named as <paramref name="YamlFileName"/>. 
-        /// Since a YAML text can contain multiple YAML documents, each of which 
-        /// represents a C# object, the result is returned as an array of <see cref="object"/>.
-        /// </summary>
-        /// <param name="YamlFileName">The name of a file that contains YAML text from which C# objects are deserialized.</param>
-        /// <param name="types">Expected type(s) of the root object(s) in the YAML stream.</param>
-        /// <returns>C# object(s) deserialized from YAML text.</returns>
-        public object[] DeserializeFromFile(string YamlFileName, params Type[] types)
-        {
-            using ( var s = new FileStream(YamlFileName, FileMode.Open, FileAccess.Read) )
-                return Deserialize(s, types);
         }
     }
 

@@ -44,7 +44,7 @@ namespace YamlSerializer.Serialization
 
         public YamlTagResolver TagResolver;
 
-        private static Type TypeFromTag(string tag)
+        private Type TypeFromTag(string tag)
         {
             if ( tag.StartsWith(YamlNode.DefaultTagPrefix) ) {
                 switch ( tag.Substring(YamlNode.DefaultTagPrefix.Length) ) {
@@ -65,7 +65,7 @@ namespace YamlSerializer.Serialization
                     throw new NotImplementedException();
                 }
             } else {
-                return TypeUtils.GetType(tag.Substring(1));
+                return TypeUtils.GetType(config.LookupAssemblies, tag.Substring(1));
             }
         }
 
@@ -127,7 +127,7 @@ namespace YamlSerializer.Serialization
             // 変換結果が見かけ上他の型に見える可能性がある場合を優先的に変換
             // 予想通りの型が見つからなければエラーになる条件でもある
             if ( type.IsEnum || type.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
-                 type == typeof(string) || EasyTypeConverter.IsTypeConverterSpecified(type) )
+                 type == typeof(string) || TypeConverterRegistry.IsTypeConverterSpecified(type) )
                 return config.TypeConverter.ConvertFromString(node.Value, type);
 
             if ( type.IsArray ) {
@@ -136,40 +136,19 @@ namespace YamlSerializer.Serialization
                 var regex = new Regex(@" *\[([0-9 ,]+)\][\r\n]+((.+|[\r\n])+)");
                 int[] dimension;
                 byte[] binary;
-                var elementSize = Marshal.SizeOf(type.GetElementType());
-                if ( type.GetArrayRank() == 1 ) {
-                    binary = System.Convert.FromBase64CharArray(s.ToCharArray(), 0, s.Length);
-                    var arrayLength = binary.Length / elementSize;
-                    dimension = new int[] { arrayLength };
-                } else {
-                    var m = regex.Match(s);
-                    if ( !m.Success )
-                        throw new FormatException("Irregal binary array");
-                    // Create array from dimension
-                    dimension = m.Groups[1].Value.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
-                    if ( type.GetArrayRank() != dimension.Length )
-                        throw new FormatException("Irregal binary array");
-                    // Fill values
-                    s = m.Groups[2].Value;
-                    binary = System.Convert.FromBase64CharArray(s.ToCharArray(), 0, s.Length);
+
+                if (type.GetElementType() != typeof (byte) || type.GetArrayRank() != 1)
+                {
+                    throw new FormatException("Expecting single dimension byte[] array");
                 }
-                var paramType = dimension.Select(n => typeof(int) /* n.GetType() */).ToArray();
-                var array = (Array)type.GetConstructor(paramType).Invoke(dimension.Cast<object>().ToArray());
-                if ( binary.Length != array.Length * elementSize )
-                    throw new FormatException("Irregal binary: data size does not match to array dimension");
-                int j = 0;
-                for ( int i = 0; i < array.Length; i++ ) {
-                    var p = Marshal.UnsafeAddrOfPinnedArrayElement(array, i);
-                    Marshal.Copy(binary, j, p, elementSize);
-                    j += elementSize;
-                }
-                return array;
+
+                return System.Convert.FromBase64CharArray(s.ToCharArray(), 0, s.Length);
             } 
 
             if ( node.Value == "" ) {
                 return config.Activator.Activate(type);
             } else {
-                return TypeDescriptor.GetConverter(type).ConvertFromString(node.Value);
+                return config.TypeConverter.ConvertFromString(node.Value, type);
             }
         }
 

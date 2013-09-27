@@ -636,24 +636,6 @@ namespace YamlSerializer
         {
             DefaultPresenter.ToYaml(tw, this, config);
         }
-        /// <summary>
-        /// Convert <see cref="YamlNode"/> to a YAML text and save it to the file.
-        /// </summary>
-        /// <param name="FileName">Name of the file to output</param>
-        public void ToYamlFile(string FileName)
-        {
-            ToYamlFile(FileName, DefaultConfig);
-        }
-        /// <summary>
-        /// Convert <see cref="YamlNode"/> to a YAML text and save it to the file.
-        /// </summary>
-        /// <param name="FileName">Name of the file to output</param>
-        /// <param name="config"><see cref="YamlConfig">YAML configuration</see> to customize serialization.</param>
-        public void ToYamlFile(string FileName, YamlConfig config)
-        {
-            using ( var s = new FileStream(FileName, FileMode.Create) )
-                DefaultPresenter.ToYaml(s, this, config);
-        }
         #endregion
 
         #region static members
@@ -740,27 +722,6 @@ namespace YamlSerializer
             var yaml = tr.ReadToEnd();
             return FromYaml(yaml, config);
         }
-        /// <summary>
-        /// Convert YAML text <paramref name="yaml"/> to a list of <see cref="YamlNode"/>.
-        /// </summary>
-        /// <param name="FileName">YAML File Name</param>
-        /// <returns>YAML nodes</returns>
-        public static YamlNode[] FromYamlFile(string FileName)
-        {
-            using ( var s = new FileStream(FileName, FileMode.Open) )
-                return FromYaml(s);
-        }
-        /// <summary>
-        /// Convert YAML text <paramref name="yaml"/> to a list of <see cref="YamlNode"/>.
-        /// </summary>
-        /// <param name="FileName">YAML File Name</param>
-        /// <returns>YAML nodes</returns>
-        /// <param name="config"><see cref="YamlConfig">YAML configuration</see> to customize serialization.</param>
-        public static YamlNode[] FromYamlFile(string FileName, YamlConfig config)
-        {
-            using ( var s = new FileStream(FileName, FileMode.Open) )
-                return FromYaml(s, config);
-        }
 
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
@@ -778,7 +739,7 @@ namespace YamlSerializer
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(int value)
         {
-            return new YamlScalar("!!int", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
+            return new YamlScalar("!!int",  YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
         }
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
