@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -272,8 +273,11 @@ namespace YamlSerializerTest
         {
             var brush = new YamlMapping("Color", "Blue");
             brush.Tag = "!System.Drawing.SolidBrush";
-            Assert.Throws<MissingMethodException>(()=>constructor.NodeToObject(brush, new SerializerContext(YamlNode.DefaultConfig)));
             var config = new YamlConfig();
+            config.Register(new LegacyTypeConverterFactory());
+
+            config.LookupAssemblies.Add(typeof(System.Drawing.SolidBrush).Assembly);
+            Assert.Throws<MissingMethodException>(() => constructor.NodeToObject(brush, new SerializerContext(config)));
             config.AddActivator<System.Drawing.SolidBrush>(() => new System.Drawing.SolidBrush(System.Drawing.Color.Black));
             Assert.AreEqual(System.Drawing.Color.Blue, ((System.Drawing.SolidBrush)constructor.NodeToObject(brush, new SerializerContext(config))).Color);
         }

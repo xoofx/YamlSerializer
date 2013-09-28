@@ -41,8 +41,6 @@ namespace YamlSerializer.Serialization
             Culture = CultureInfo.InvariantCulture;
 
             // TODO pre-bake this default registers in a Dictionary in order to avoid their reallocation.
-            // TODO: Add DatetmeConverter / TimeSpanConverter...etc.
-            // TODO: Add IntPtr/UIntPtr Converter
             Register(typeof(bool), new BooleanConverter());
 
             Register(typeof(byte), new ByteConverter());
@@ -64,6 +62,9 @@ namespace YamlSerializer.Serialization
             Register(typeof(char), new CharConverter());
 
             Register(typeof(decimal), new DecimalConverter());
+
+            Register(typeof(DateTime), new DateTimeConverter());
+            Register(typeof(TimeSpan), new TimeSpanConverter());
 
             Register(new EnumConverterFactory());
         }

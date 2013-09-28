@@ -712,7 +712,9 @@ namespace YamlSerializerTest
         public void CultureTest()
         {
             var config = new YamlConfig();
+            config.Register(new LegacyTypeConverterFactory());
             config.Culture = new System.Globalization.CultureInfo("da-DK");
+
             var serializer = new Serializer(config);
             object obj = new System.Drawing.PointF(1.2f, 3.1f);
             var yaml = serializer.Serialize(obj);
@@ -739,6 +741,21 @@ namespace YamlSerializerTest
             Assert.AreEqual(obj, restore);
 
             YamlNode.DefaultConfig.Culture = System.Globalization.CultureInfo.CurrentCulture;
+        }
+    }
+
+    class PointTypeConverter : IYamlTypeConverter
+    {
+        private readonly System.Drawing.PointConverter converter = new System.Drawing.PointConverter();
+
+        public object ConvertFrom(CultureInfo culture, string value)
+        {
+            return converter.ConvertFrom(null, culture, value);
+        }
+
+        public string ConvertTo(CultureInfo culture, object obj)
+        {
+            return (string)converter.ConvertTo(null, culture, obj, typeof(string));
         }
     }
 

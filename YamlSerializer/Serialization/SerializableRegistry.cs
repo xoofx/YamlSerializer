@@ -20,13 +20,9 @@ namespace YamlSerializer.Serialization
         public IYamlSerializable FindSerializable(SerializerContext context, object value, Type type)
         {
             var serializable = value as IYamlSerializable;
-            if (serializable == null)
+            // Type may be null, so return null in this case
+            if (serializable == null && type != null)
             {
-                if (type == null)
-                {
-                    return null;
-                }
-
                 if (!typeToSerializable.TryGetValue(type, out serializable))
                 {
                     foreach (var factory in factories)

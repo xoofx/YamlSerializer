@@ -10,9 +10,9 @@ namespace YamlSerializer.Serialization
             return short.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((short)value).ToString("G", cultureInfo);
+            return ((short)value).ToString("G", culture);
         }
     }
 
@@ -23,9 +23,9 @@ namespace YamlSerializer.Serialization
             return ushort.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((ushort)value).ToString("G", cultureInfo);
+            return ((ushort)value).ToString("G", culture);
         }
     }
 
@@ -36,9 +36,9 @@ namespace YamlSerializer.Serialization
             return int.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((int) value).ToString("G", cultureInfo);
+            return ((int) value).ToString("G", culture);
         }
     }
 
@@ -49,9 +49,9 @@ namespace YamlSerializer.Serialization
             return uint.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((uint)value).ToString("G", cultureInfo);
+            return ((uint)value).ToString("G", culture);
         }
     }
 
@@ -62,9 +62,9 @@ namespace YamlSerializer.Serialization
             return long.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((long)value).ToString("G", cultureInfo);
+            return ((long)value).ToString("G", culture);
         }
     }
 
@@ -75,9 +75,9 @@ namespace YamlSerializer.Serialization
             return ulong.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((ulong)value).ToString("G", cultureInfo);
+            return ((ulong)value).ToString("G", culture);
         }
     }
 
@@ -88,9 +88,9 @@ namespace YamlSerializer.Serialization
             return float.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((float)value).ToString("R", cultureInfo);
+            return ((float)value).ToString("R", culture);
         }
     }
 
@@ -101,9 +101,9 @@ namespace YamlSerializer.Serialization
             return double.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((double)value).ToString("R", cultureInfo);
+            return ((double)value).ToString("R", culture);
         }
     }
 
@@ -114,7 +114,7 @@ namespace YamlSerializer.Serialization
             return value;
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
             return (string)value ?? string.Empty;
         }
@@ -127,7 +127,7 @@ namespace YamlSerializer.Serialization
             return string.IsNullOrEmpty(value) ? char.MinValue : value[0];
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
             return "" + (char)value;
         }
@@ -140,7 +140,7 @@ namespace YamlSerializer.Serialization
             return bool.Parse(value);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
             return ((bool)value) ? "true" : "false";
         }
@@ -153,9 +153,9 @@ namespace YamlSerializer.Serialization
             return decimal.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((decimal)value).ToString("G", cultureInfo);
+            return ((decimal)value).ToString("G", culture);
         }
     }
 
@@ -166,9 +166,9 @@ namespace YamlSerializer.Serialization
             return byte.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((byte)value).ToString("G", cultureInfo);
+            return ((byte)value).ToString("G", culture);
         }
     }
 
@@ -179,9 +179,9 @@ namespace YamlSerializer.Serialization
             return sbyte.Parse(value, culture);
         }
 
-        public string ConvertTo(CultureInfo cultureInfo, object value)
+        public string ConvertTo(CultureInfo culture, object value)
         {
-            return ((sbyte)value).ToString("G", cultureInfo);
+            return ((sbyte)value).ToString("G", culture);
         }
     }
 
@@ -211,6 +211,32 @@ namespace YamlSerializer.Serialization
         public IYamlTypeConverter TryCreate(Type type)
         {
             return type.IsEnum ? new EnumConverter(type) : null;
+        }
+    }
+
+    internal class DateTimeConverter : IYamlTypeConverter
+    {
+        public object ConvertFrom(CultureInfo culture, string value)
+        {
+            return DateTime.Parse(value, culture);        
+        }
+
+        public string ConvertTo(CultureInfo culture, object value)
+        {
+            return ((DateTime)value).ToString(culture);
+        }
+    }
+
+    internal class TimeSpanConverter : IYamlTypeConverter
+    {
+        public object ConvertFrom(CultureInfo culture, string value)
+        {
+            return TimeSpan.Parse(value);
+        }
+
+        public string ConvertTo(CultureInfo culture, object value)
+        {
+            return ((TimeSpan)value).ToString();
         }
     }
 }

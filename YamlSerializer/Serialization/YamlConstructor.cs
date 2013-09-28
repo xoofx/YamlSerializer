@@ -62,11 +62,11 @@ namespace YamlSerializer.Serialization
                 case "map":
                     return null;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("tag [{0}] is not supported".DoFormat(tag));
                 }
-            } else {
-                return TypeUtils.GetType(config.LookupAssemblies, tag.Substring(1));
             }
+
+            return context.ResolveType(tag.Substring(1));
         }
 
         object NodeToObjectInternal(YamlNode node, Type expected, Dictionary<YamlNode, object> appeared)
@@ -200,9 +200,10 @@ namespace YamlSerializer.Serialization
                 var indices = new int[type.GetArrayRank()];
                 SetArrayElements(array, seq, 0, indices, type.GetElementType(), appeared);
                 return array;
-            } else {
-                throw new NotImplementedException();
             }
+
+            // TODO Add support for lists
+            throw new FormatException("Unsupported type [{0}] for sequence [{1}]".DoFormat(type.Name, seq));
         }
 
         void SetArrayElements(Array array, YamlSequence seq, int i, int[] indices, Type elementType, Dictionary<YamlNode, object> appeared)
@@ -240,6 +241,11 @@ namespace YamlSerializer.Serialization
                 foreach ( var entry in map ) 
                     dict.Add(NodeToObjectInternal(entry.Key, null, appeared), NodeToObjectInternal(entry.Value, null, appeared));
                 return dict;
+            }
+
+            if (type == null)
+            {
+                throw new FormatException("Unable to find type for {0}]".DoFormat(map.ToString()));
             }
 
             // 3) Give a chance to config.Activator

@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LegacyTypeConverter.cs" />
     <Compile Include="YamlNodeTest.cs" />
     <Compile Include="YamlRepresenterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
