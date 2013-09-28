@@ -491,7 +491,7 @@ namespace YamlSerializer.Serialization
     /// 
     /// <para>By default, <see cref="Serializer"/> outputs a YAML stream with line break of "\r\n".
     /// This can be customized either by setting <c>YamlNode.DefaultConfig.LineBreakForOutput</c> or 
-    /// by giving an instance of <see cref="YamlConfig"/> to the <see cref="SerializerYamlConfig)">
+    /// by giving an instance of <see cref="YamlConfig"/> to the <see cref="SerializerYamlConfig">
     /// constructor</see>.
     /// </para>
     /// 
