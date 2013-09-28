@@ -208,7 +208,7 @@ namespace YamlSerializer.Serialization
 
     internal class EnumConverterFactory : IYamlTypeConverterFactory
     {
-        public IYamlTypeConverter TryCreate(Type type)
+        public IYamlTypeConverter TryCreate(SerializerContext context, Type type)
         {
             return type.IsEnum ? new EnumConverter(type) : null;
         }

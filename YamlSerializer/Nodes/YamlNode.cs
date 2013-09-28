@@ -4,6 +4,7 @@ using System.Text;
 
 using System.IO;
 using System.ComponentModel;
+using YamlSerializer.Serialization;
 
 namespace YamlSerializer
 {
@@ -649,6 +650,7 @@ namespace YamlSerializer
         /// Gets or sets the default configuration to customize serialization of <see cref="YamlNode"/>.
         /// </summary>
         public static YamlConfig DefaultConfig { get; set; }
+        internal static SerializerContext DefaultSerializerContext { get; set; }
         internal static YamlParser DefaultParser { get; set; }
         internal static YamlPresenter DefaultPresenter { get; set; }
 
@@ -659,6 +661,7 @@ namespace YamlSerializer
             DefaultConfig = new YamlConfig();
             DefaultParser = new YamlParser();
             DefaultPresenter = new YamlPresenter();
+            DefaultSerializerContext = new SerializerContext(DefaultConfig);
         }
 
         /// <summary>
@@ -739,7 +742,7 @@ namespace YamlSerializer
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(int value)
         {
-            return new YamlScalar("!!int",  YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
+            return new YamlScalar("!!int",  YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value));
         }
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
@@ -748,7 +751,7 @@ namespace YamlSerializer
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(double value)
         {
-            return new YamlScalar("!!float", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
+            return new YamlScalar("!!float", YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value));
         }
         /// <summary>
         /// Implicit conversion from string to <see cref="YamlScalar"/>.
@@ -757,7 +760,7 @@ namespace YamlSerializer
         /// <returns>Conversion result.</returns>
         public static implicit operator YamlNode(bool value)
         {
-            return new YamlScalar("!!bool", YamlNode.DefaultConfig.TypeConverter.ConvertToString(value));
+            return new YamlScalar("!!bool", YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value));
         }
         /// <summary>
         /// Implicit conversion from <see cref="DateTime"/> to <see cref="YamlScalar"/>.

@@ -105,6 +105,8 @@ namespace YamlSerializerTest
         public void InitSerializer()
         {
             var config = new YamlConfig();
+            config.Register(new LegacyTypeConverterFactory());
+            config.LookupAssemblies.Add(typeof(System.Drawing.SolidBrush).Assembly);
             config.LookupAssemblies.Add(typeof(YamlSerializerTest).Assembly);
             serializer = new Serializer(config);
         }
@@ -814,7 +816,12 @@ namespace YamlSerializerTest
         [Test]
         public void TestCustomActivator()
         {
-            var serializer = new Serializer();
+            var config = new YamlConfig();
+            config.Register(new LegacyTypeConverterFactory());
+            config.LookupAssemblies.Add(typeof(System.Drawing.SolidBrush).Assembly);
+            config.LookupAssemblies.Add(typeof(YamlSerializerTest).Assembly);
+
+            var serializer = new Serializer(config);
             var yaml =
               @"%YAML 1.2
 ---
@@ -830,7 +837,6 @@ Color: Red
                 // SolidBrush has no default constructor!
             }
 
-            var config = new YamlConfig();
             config.AddActivator<SolidBrush>(() => new SolidBrush(Color.Black));
             serializer = new Serializer(config);
 

@@ -69,16 +69,16 @@ namespace YamlSerializer.Serialization
             Register(new EnumConverterFactory());
         }
 
-        public bool IsTypeConverterSpecified(Type type)
+        public bool IsTypeConverterSpecified(SerializerContext context, Type type)
         {
             if (!typeConverters.ContainsKey(type))
             {
-                return FindConverter(type, false) != null;
+                return FindConverter(context, type, false) != null;
             }
             return true;
         }
 
-        private IYamlTypeConverter FindConverter(Type type, bool exceptionIfNotFound)
+        private IYamlTypeConverter FindConverter(SerializerContext context, Type type, bool exceptionIfNotFound)
         {
             if ( typeConverters.ContainsKey(type) ) 
             {
@@ -100,7 +100,7 @@ namespace YamlSerializer.Serialization
             // Try to resolve it via a factory
             foreach (var typeConverterFactory in typeConverterFactories)
             {
-                var converter = typeConverterFactory.TryCreate(type);
+                var converter = typeConverterFactory.TryCreate(context, type);
                 if (converter != null)
                 {
                     Register(type, converter);
@@ -124,18 +124,18 @@ namespace YamlSerializer.Serialization
             typeConverterFactories.Add(factory);
         }
 
-        public string ConvertToString(object obj)
+        public string ConvertToString(SerializerContext context, object obj)
         {
             if ( obj == null )
                 return "null";
 
-            var converter = FindConverter(obj.GetType(), true);
+            var converter = FindConverter(context, obj.GetType(), true);
             return converter != null ? converter.ConvertTo(Culture, obj) : obj.ToString();
         }
 
-        public object ConvertFromString(string s, Type type)
+        public object ConvertFromString(SerializerContext context, string s, Type type)
         {
-            return FindConverter(type, true).ConvertFrom(Culture, s);
+            return FindConverter(context, type, true).ConvertFrom(Culture, s);
         }
     }
 }

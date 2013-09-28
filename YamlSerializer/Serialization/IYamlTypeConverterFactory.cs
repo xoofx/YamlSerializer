@@ -10,8 +10,9 @@ namespace YamlSerializer.Serialization
         /// <summary>
         /// Try to create a <see cref="IYamlTypeConverter"/> or return null if not supported.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="type">The type.</param>
         /// <returns>If supported, return an instance of <see cref="IYamlTypeConverter"/> else return <c>null</c>.</returns>
-        IYamlTypeConverter TryCreate(Type type);
+        IYamlTypeConverter TryCreate(SerializerContext context, Type type);
     }
 }

@@ -64,7 +64,7 @@ namespace YamlSerializer
         public YamlScalar(int value)
         {
             Tag = ExpandTag("!!int");
-            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value);
         }
         /// <summary>
         /// Initialize a float node that has <paramref name="value"/> as its content.
@@ -72,7 +72,7 @@ namespace YamlSerializer
         public YamlScalar(double value)
         {
             Tag = ExpandTag("!!float");
-            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value);
         }
         /// <summary>
         /// Initialize a bool node that has <paramref name="value"/> as its content.
@@ -80,7 +80,7 @@ namespace YamlSerializer
         public YamlScalar(bool value)
         {
             Tag = ExpandTag("!!bool");
-            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(value);
+            Value = YamlNode.DefaultConfig.TypeConverter.ConvertToString(DefaultSerializerContext, value);
         }
         /// <summary>
         /// Initialize a timestamp node that has <paramref name="value"/> as its content.

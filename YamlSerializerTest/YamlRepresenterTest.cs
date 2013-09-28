@@ -713,6 +713,8 @@ namespace YamlSerializerTest
         {
             var config = new YamlConfig();
             config.Register(new LegacyTypeConverterFactory());
+            config.LookupAssemblies.Add(typeof(System.Drawing.PointF).Assembly);
+
             config.Culture = new System.Globalization.CultureInfo("da-DK");
 
             var serializer = new Serializer(config);

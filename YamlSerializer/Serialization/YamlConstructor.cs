@@ -133,7 +133,7 @@ namespace YamlSerializer.Serialization
             }
 
             // 2) Give a chance to IYamlTypeConverter
-            var hasTypeConverter = config.TypeConverter.IsTypeConverterSpecified(type);
+            var hasTypeConverter = config.TypeConverter.IsTypeConverterSpecified(context, type);
             var nodeValue = node.Value;
 
             // To accommodate the !!int and !!float encoding, all "_"s in integer and floating point values
@@ -143,14 +143,14 @@ namespace YamlSerializer.Serialization
                 || type == typeof (float) || type == typeof (decimal))
             {
                 nodeValue = nodeValue.Replace("_", string.Empty);
-                return config.TypeConverter.ConvertFromString(nodeValue, type);
+                return config.TypeConverter.ConvertFromString(context, nodeValue, type);
             }
 
             // 変換結果が見かけ上他の型に見える可能性がある場合を優先的に変換
             // 予想通りの型が見つからなければエラーになる条件でもある
             if ( type.IsEnum || type.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
                  type == typeof(string) || hasTypeConverter )
-                return config.TypeConverter.ConvertFromString(nodeValue, type);
+                return config.TypeConverter.ConvertFromString(context, nodeValue, type);
 
             // 3) If an array of bytes, try to deserialize it directly in base64
             if (type.IsArray)

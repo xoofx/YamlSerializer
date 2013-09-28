@@ -93,13 +93,13 @@ namespace YamlSerializer.Serialization
 
             // bool, byte, sbyte, decimal, double, float, int ,uint, long, ulong, short, ushort, string, enum
             if ( type.IsPrimitive || type.IsEnum || type == typeof(decimal) || type == typeof(string) ) {
-                var n = str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj) );
+                var n = str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(context, obj) );
                 return n;
             }
 
             // TypeConverterAttribute 
-            if ( config.TypeConverter.IsTypeConverterSpecified(type) )
-                return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj));
+            if ( config.TypeConverter.IsTypeConverterSpecified(context, type) )
+                return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(context, obj));
 
             // array
             if ( type.IsArray ) 
