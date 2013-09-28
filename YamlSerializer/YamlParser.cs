@@ -1698,7 +1698,7 @@ namespace YamlSerializer
                 text[p++] == '|' &&
                 c_bBlockHeader(out m, out t) &&
                 Action(() => { if ( m == 0 ) m = AutoDetectIndentation(n); }) &&
-                ErrorUnless(lLiteralContent(n + m, t), "Irregal literal text found.")
+                ErrorUnless(lLiteralContent(n + m, t), "Illegal literal text found.")
             ) &&
             SetValue(CreateScalar("!!str", pos));
         }
@@ -1740,7 +1740,7 @@ namespace YamlSerializer
                 WarningIf(t== ChompingIndicator.Keep,       
                   "Keep line breaks for folded text '>+' is invalid") &&
                 Action(() => { if ( m == 0 ) m = AutoDetectIndentation(n); }) &&
-                ErrorUnless(lFoldedContent(n + m, t), "Irregal folded string found.")
+                ErrorUnless(lFoldedContent(n + m, t), "Illegal folded string found.")
             ) &&
             SetValue(CreateScalar("!!str", pos));
         }
