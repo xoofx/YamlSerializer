@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,18 +78,18 @@ namespace YamlSerializer.Serialization
             Type itype;
 
             // implements IDictionary
-            if ( type.GetInterface("System.Collections.IDictionary") != null ) {
+            if ( type.GetInterface(typeof(IDictionary)) != null ) {
                 IsDictionary = true;
                 IsReadOnly = obj => ( (System.Collections.IDictionary)obj ).IsReadOnly;
                 // extract Key, Value types from IDictionary<??, ??>
-                itype = type.GetInterface("System.Collections.Generic.IDictionary`2");
+                itype = type.GetInterface(typeof(IDictionary<,>));
                 if ( itype != null ) {
                     KeyType = itype.GetGenericArguments()[0];
                     ValueType = itype.GetGenericArguments()[1];
                 }
             } else
                 // implements ICollection<T> 
-                if ( ( itype = type.GetInterface("System.Collections.Generic.ICollection`1") ) != null ) {
+                if ( ( itype = type.GetInterface(typeof(ICollection<>)) ) != null ) {
                     ValueType = itype.GetGenericArguments()[0];
                     var add = itype.GetMethod("Add", new Type[] { ValueType });
                     CollectionAdd = (obj, value) => add.Invoke(obj, new object[] { value });
@@ -98,7 +99,7 @@ namespace YamlSerializer.Serialization
                     IsReadOnly = obj => (bool)isReadOnly.Invoke(obj, new object[0]);
                 } else
                     // implements IList 
-                    if ( ( itype = type.GetInterface("System.Collections.IList") ) != null ) {
+                    if ( ( itype = type.GetInterface(typeof(IList)) ) != null ) {
                         var add = itype.GetMethod("Add", new Type[] { typeof(object) });
                         CollectionAdd = (obj, value) => add.Invoke(obj, new object[] { value });
                         var clear = itype.GetMethod("Clear", new Type[0]);

@@ -28,15 +28,30 @@ namespace YamlSerializer
     internal static class TypeUtils
     {
 
-        public static Type GetInterface(this Type type, string interfaceName)
+        public static Type GetInterface(this Type type, Type lookInterfaceType)
         {
-            foreach (var interfaceType in type.GetInterfaces())
+            if (lookInterfaceType.IsGenericTypeDefinition)
             {
-                if (interfaceType.Name == interfaceName)
+                foreach (var interfaceType in type.GetInterfaces())
                 {
-                    return interfaceType;
+                    if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == lookInterfaceType)
+                    {
+                        return interfaceType;
+                    }
                 }
             }
+            else
+            {
+                foreach (var interfaceType in type.GetInterfaces())
+                {
+                    if (interfaceType == lookInterfaceType)
+                    {
+                        return interfaceType;
+                    }
+                }
+                
+            }
+
             return null;
         }
 
