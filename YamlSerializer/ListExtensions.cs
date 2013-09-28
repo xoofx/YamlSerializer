@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace YamlSerializer
 {
-    public static class ListExtensions
+    internal static class ListExtensions
     {
-
         public static int FindIndex<T>(this List<T> list, Predicate<T> match)
         {
             return FindIndex(list, 0, list.Count, match);
