@@ -18,6 +18,26 @@ namespace YamlSerializer
     /// </summary>
     public class YamlConfig
     {
+        internal readonly TypeConverterRegistry TypeConverter = new TypeConverterRegistry();
+        internal readonly SerializableRegistry Serializable;
+        internal readonly ObjectActivator Activator = new ObjectActivator();
+        internal YamlTagResolver TagResolver = new YamlTagResolver();
+        private Func<YamlConfig, SerializerContext> contextFactory;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="YamlConfig"/> class.
+        /// </summary>
+        public YamlConfig()
+        {
+            Serializable = new SerializableRegistry(LookupAssemblies);
+            contextFactory = DefaultContexFactory;
+        }
+
+        /// <summary>
+        /// A list of assemblies to lookup when trying to resolve a <see cref="Type"/> from a type name.
+        /// </summary>
+        public readonly List<Assembly> LookupAssemblies = new List<Assembly>();
+        
         /// <summary>
         /// If true, emits the yaml version of the document. YAML 1.2 for example. Default is true.
         /// </summary>
@@ -125,6 +145,7 @@ namespace YamlSerializer
         /// </code>
         /// </example>
         public bool NormalizeLineBreaks = true;
+
         /// <summary>
         /// If true, all <see cref="YamlScalar"/>s whose text expression contains line breaks 
         /// will be presented as double quoted texts, where the line break characters are escaped 
@@ -209,6 +230,7 @@ namespace YamlSerializer
         /// </code>
         /// </example>
         public bool ExplicitlyPreserveLineBreaks = true;
+
         /// <summary>
         /// Line break to be used when <see cref="YamlNode"/> is presented in YAML stream. 
         /// "\r", "\r\n", "\n" are allowed. "\r\n" is defalut.
@@ -278,6 +300,7 @@ namespace YamlSerializer
         /// </code>
         /// </example>
         public string LineBreakForOutput = "\r\n";
+
         /// <summary>
         /// <para>The YAML parser normalizes line breaks in a YAML stream to this value.</para>
         /// 
@@ -368,15 +391,51 @@ namespace YamlSerializer
         /// </code>
         /// </example>
         public string LineBreakForInput = "\n";
+
         /// <summary>
         /// If true, tag for the root node is omitted by <see cref="YamlSerializer"/>.
         /// </summary>
         public bool OmitTagForRootNode = false;
+
         /// <summary>
         /// If true, the verbatim style of a tag, i.e. !&lt; &gt; is avoided as far as possible.
         /// </summary>
         public bool DontUseVerbatimTag = false;
 
+        /// <summary>
+        /// Gets or sets the context factory. Default is to create a <see cref="SerializerContext"/>
+        /// </summary>
+        /// <value>The context factory.</value>
+        /// <exception cref="System.ArgumentNullException"></exception>
+        public Func<YamlConfig, SerializerContext> ContextFactory
+        {
+            get { return contextFactory; }
+            set
+            {
+                if (value == null) throw new ArgumentNullException();
+
+                contextFactory = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets CultureInfo with which the .NET native values are converted
+        /// to / from string. Currently, this is not to be changed from CultureInfo.InvariantCulture.
+        /// </summary>
+        internal CultureInfo Culture
+        {
+            get { return TypeConverter.Culture; }
+            set { TypeConverter.Culture = value; }
+        }
+
+        /// <summary>
+        /// Creates the serialization context.
+        /// </summary>
+        /// <returns>A serialization context used when serializing/deserializing.</returns>
+        public SerializerContext CreateContext()
+        {
+            return ContextFactory(this);
+        }
 
         /// <summary>
         /// Adds a rule for a tag that will map to a specific type.
@@ -406,7 +465,6 @@ namespace YamlSerializer
         {
             TagResolver.AddRule<T>(tag, regex, decode, encode);
         }           
-        internal YamlTagResolver TagResolver = new YamlTagResolver();
 
         /// <summary>
         /// Add an ability of instantiating an instance of a class that has no default constructer.
@@ -445,21 +503,48 @@ namespace YamlSerializer
         {
             Activator.Add<T>(activator);
         }
-        internal ObjectActivator Activator = 
-            new ObjectActivator();
-
-
-        public readonly List<Assembly> LookupAssemblies = new List<Assembly>();
 
         /// <summary>
-        /// Gets or sets CultureInfo with which the .NET native values are converted
-        /// to / from string. Currently, this is not to be changed from CultureInfo.InvariantCulture.
+        /// Registers a <see cref="IYamlTypeConverter"/> for the specified type.
         /// </summary>
-        internal CultureInfo Culture {
-            get { return TypeConverter.Culture; }
-            set { TypeConverter.Culture = value; }
+        /// <param name="type">The type.</param>
+        /// <param name="converter">The converter.</param>
+        public void Register(Type type, IYamlTypeConverter converter)
+        {
+            TypeConverter.Register(type, converter);
         }
-        internal TypeConverterRegistry TypeConverter =
-            new TypeConverterRegistry();
+
+        /// <summary>
+        /// Registers a factory for <see cref="IYamlTypeConverter"/>.
+        /// </summary>
+        /// <param name="factory">The factory.</param>
+        public void Register(IYamlTypeConverterFactory factory)
+        {
+            TypeConverter.Register(factory);
+        }
+
+        /// <summary>
+        /// Registers a <see cref="IYamlSerializable"/> for the specified type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="serializable">The serializable.</param>
+        public void Register(Type type, IYamlSerializable serializable)
+        {
+            Serializable.Register(type, serializable);
+        }
+
+        /// <summary>
+        /// Registers a factory for <see cref="IYamlSerializable"/>.
+        /// </summary>
+        /// <param name="serializableFactory">The serializable factory.</param>
+        public void Register(IYamlSerializableFactory serializableFactory)
+        {
+            Serializable.Register(serializableFactory);
+        }
+
+        private SerializerContext DefaultContexFactory(YamlConfig yamlConfig)
+        {
+            return new SerializerContext(yamlConfig);
+        }
     }
 }

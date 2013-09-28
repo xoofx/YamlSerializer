@@ -20,10 +20,10 @@ namespace YamlSerializer.Serialization
     /// if( TypeConverterRegistry.IsTypeConverterSpecified(type) ) {
     /// 
     ///   // Convert the object to string.
-    ///   string s = TypeConverterRegistry.ConvertToString(obj);
+    ///   string s = TypeConverterRegistry.ConvertTo(obj);
     /// 
     ///   // Convert the string to an object of the spific type.
-    ///   object restored = TypeConverterRegistry.ConvertFromString(s, type);
+    ///   object restored = TypeConverterRegistry.ConvertFrom(s, type);
     ///   
     ///   Assert.AreEqual(obj, restored);
     /// 
@@ -33,13 +33,16 @@ namespace YamlSerializer.Serialization
     internal class TypeConverterRegistry
     {
         internal CultureInfo Culture;
-        private static Dictionary<Type, ITypeConverter> TypeConverters = new Dictionary<Type, ITypeConverter>();
-        private static List<ITypeConverterFactory> TypeConverterFactories = new List<ITypeConverterFactory>();
+        private readonly Dictionary<Type, IYamlTypeConverter> typeConverters = new Dictionary<Type, IYamlTypeConverter>();
+        private readonly List<IYamlTypeConverterFactory> typeConverterFactories = new List<IYamlTypeConverterFactory>();
 
         public TypeConverterRegistry()
         {
-            Culture = System.Globalization.CultureInfo.InvariantCulture;
+            Culture = CultureInfo.InvariantCulture;
 
+            // TODO pre-bake this default registers in a Dictionary in order to avoid their reallocation.
+            // TODO: Add DatetmeConverter / TimeSpanConverter...etc.
+            // TODO: Add IntPtr/UIntPtr Converter
             Register(typeof(bool), new BooleanConverter());
 
             Register(typeof(byte), new ByteConverter());
@@ -65,28 +68,27 @@ namespace YamlSerializer.Serialization
             Register(new EnumConverterFactory());
         }
 
-
-        public static bool IsTypeConverterSpecified(Type type)
+        public bool IsTypeConverterSpecified(Type type)
         {
-            if (!TypeConverters.ContainsKey(type))
+            if (!typeConverters.ContainsKey(type))
             {
                 return FindConverter(type, false) != null;
             }
             return true;
         }
 
-        private static ITypeConverter FindConverter(Type type, bool exceptionIfNotFound)
+        private IYamlTypeConverter FindConverter(Type type, bool exceptionIfNotFound)
         {
-            if ( TypeConverters.ContainsKey(type) ) 
+            if ( typeConverters.ContainsKey(type) ) 
             {
-                return TypeConverters[type];
+                return typeConverters[type];
             }
 
             var tagConverterAttribute = type.GetAttribute<YamlTypeConverterAttribute>();
             if (tagConverterAttribute != null)
             {
                 var converterType = Type.GetType(tagConverterAttribute.ConverterTypeName);
-                var converter = Activator.CreateInstance(converterType) as ITypeConverter;
+                var converter = Activator.CreateInstance(converterType) as IYamlTypeConverter;
                 if (converter != null)
                 {
                     Register(type, converter);
@@ -95,7 +97,7 @@ namespace YamlSerializer.Serialization
             }
 
             // Try to resolve it via a factory
-            foreach (var typeConverterFactory in TypeConverterFactories)
+            foreach (var typeConverterFactory in typeConverterFactories)
             {
                 var converter = typeConverterFactory.TryCreate(type);
                 if (converter != null)
@@ -111,14 +113,14 @@ namespace YamlSerializer.Serialization
             return null;
         }
 
-        public static void Register(Type type, ITypeConverter converter)
+        public void Register(Type type, IYamlTypeConverter converter)
         {
-            TypeConverters[type] = converter;
+            typeConverters[type] = converter;
         }
 
-        public static void Register(ITypeConverterFactory factory)
+        public void Register(IYamlTypeConverterFactory factory)
         {
-            TypeConverterFactories.Add(factory);
+            typeConverterFactories.Add(factory);
         }
 
         public string ConvertToString(object obj)
@@ -127,12 +129,12 @@ namespace YamlSerializer.Serialization
                 return "null";
 
             var converter = FindConverter(obj.GetType(), true);
-            return converter != null ? converter.ConvertToString(null, Culture, obj) : obj.ToString();
+            return converter != null ? converter.ConvertTo(Culture, obj) : obj.ToString();
         }
 
         public object ConvertFromString(string s, Type type)
         {
-            return FindConverter(type, true).ConvertFromString(null, Culture, s);
+            return FindConverter(type, true).ConvertFrom(Culture, s);
         }
     }
 }

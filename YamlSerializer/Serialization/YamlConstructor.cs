@@ -15,16 +15,20 @@ namespace YamlSerializer.Serialization
     /// </summary>
     internal class YamlConstructor
     {
+        private SerializerContext context;
+        private YamlConfig config;
+
         /// <summary>
         /// Construct YAML node tree that represents a given C# object.
         /// </summary>
-        /// <param name="node"><see cref="YamlNode"/> to be converted to C# object.</param>
-        /// <param name="config"><see cref="YamlConfig"/> to customize serialization.</param>
-        /// <returns></returns>
-        public object NodeToObject(YamlNode node, YamlConfig config)
+        /// <param name="node"><see cref="YamlNode" /> to be converted to C# object.</param>
+        /// <param name="context">The context.</param>
+        /// <returns>System.Object.</returns>
+        public object NodeToObject(YamlNode node, SerializerContext context)
         {
-            return NodeToObject(node, null, config);
+            return NodeToObject(node, null, context);
         }
+
         /// <summary>
         /// Construct YAML node tree that represents a given C# object.
         /// </summary>
@@ -32,17 +36,13 @@ namespace YamlSerializer.Serialization
         /// <param name="expected">Expected type for the root object.</param>
         /// <param name="config"><see cref="YamlConfig"/> to customize serialization.</param>
         /// <returns></returns>
-        public object NodeToObject(YamlNode node, Type expected, YamlConfig config)
+        public object NodeToObject(YamlNode node, Type expected, SerializerContext context)
         {
-            this.config = config;
-            this.TagResolver = config.TagResolver;
-            var appeared =
-                new Dictionary<YamlNode, object>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
+            this.context = context;
+            this.config = context.Config;
+            var appeared = new Dictionary<YamlNode, object>(TypeUtils.EqualityComparerByRef<YamlNode>.Default);
             return NodeToObjectInternal(node, expected, appeared);
         }
-        YamlConfig config;
-
-        public YamlTagResolver TagResolver;
 
         private Type TypeFromTag(string tag)
         {
@@ -78,7 +78,7 @@ namespace YamlSerializer.Serialization
             
             // Type resolution
             Type type = expected == typeof(object) ? null : expected;
-            Type fromTag = TagResolver.TypeFromTag(node.Tag);
+            Type fromTag = config.TagResolver.TypeFromTag(node.Tag);
             if ( fromTag == null )
                 fromTag = TypeFromTag(node.Tag);
             if ( fromTag != null && type != fromTag && fromTag.IsClass && fromTag != typeof(string) )
@@ -88,22 +88,30 @@ namespace YamlSerializer.Serialization
 
             // try TagResolver
             if ( type == fromTag && fromTag != null )
-                if ( node is YamlScalar && TagResolver.Decode((YamlScalar)node, out obj) )
+                if (node is YamlScalar && config.TagResolver.Decode((YamlScalar)node, out obj))
                     return obj;
 
-            if ( node.Tag == YamlNode.DefaultTagPrefix + "null" ) {
+            if (node.Tag == YamlNode.DefaultTagPrefix + "null")
+            {
                 obj = null;
-            } else
-            if ( node is YamlScalar ) {
-                obj = ScalarToObject((YamlScalar)node, type);
-            } else
-            if ( node is YamlMapping ) {
-                obj = MappingToObject((YamlMapping)node, type, null, appeared);
-            } else
-            if ( node is YamlSequence ) {
-                obj = SequenceToObject((YamlSequence)node, type, appeared);
-            } else
-                throw new NotImplementedException();
+            }
+            else
+            {
+                if (node is YamlScalar)
+                {
+                    obj = ScalarToObject((YamlScalar) node, type);
+                }
+                else if (node is YamlMapping)
+                {
+                    obj = MappingToObject((YamlMapping) node, type, null, appeared);
+                }
+                else if (node is YamlSequence)
+                {
+                    obj = SequenceToObject((YamlSequence) node, type, appeared);
+                }
+                else
+                    throw new NotImplementedException();
+            }
 
             if ( !appeared.ContainsKey(node) )
                 if(obj != null && obj.GetType().IsClass && ( !(obj is string) || ((string)obj).Length >= 1000 ) )
@@ -117,20 +125,36 @@ namespace YamlSerializer.Serialization
             if ( type == null )
                 throw new FormatException("Could not find a type '{0}'.".DoFormat(node.Tag));
 
+            // 1) Give a chance to deserialize through a IYamlSerializable interface
+            var serializable = config.Serializable.FindSerializable(context, null, type);
+            if (serializable != null)
+            {
+                return serializable.Deserialize(context, node);
+            }
+
+            // 2) Give a chance to IYamlTypeConverter
+            var hasTypeConverter = config.TypeConverter.IsTypeConverterSpecified(type);
+            var nodeValue = node.Value;
+
             // To accommodate the !!int and !!float encoding, all "_"s in integer and floating point values
             // are simply neglected.
-            if ( type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) || 
-                 type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) 
-                 || type == typeof(float) || type == typeof(decimal) ) 
-                return config.TypeConverter.ConvertFromString(node.Value.Replace("_", ""), type);
+            if (type == typeof (byte) || type == typeof (sbyte) || type == typeof (short) || type == typeof (ushort) ||
+                type == typeof (int) || type == typeof (uint) || type == typeof (long) || type == typeof (ulong)
+                || type == typeof (float) || type == typeof (decimal))
+            {
+                nodeValue = nodeValue.Replace("_", string.Empty);
+                return config.TypeConverter.ConvertFromString(nodeValue, type);
+            }
 
             // 変換結果が見かけ上他の型に見える可能性がある場合を優先的に変換
             // 予想通りの型が見つからなければエラーになる条件でもある
             if ( type.IsEnum || type.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
-                 type == typeof(string) || TypeConverterRegistry.IsTypeConverterSpecified(type) )
-                return config.TypeConverter.ConvertFromString(node.Value, type);
+                 type == typeof(string) || hasTypeConverter )
+                return config.TypeConverter.ConvertFromString(nodeValue, type);
 
-            if ( type.IsArray ) {
+            // 3) If an array of bytes, try to deserialize it directly in base64
+            if (type.IsArray)
+            {
                 // Split dimension from base64 strings
                 var s = node.Value;
                 var regex = new Regex(@" *\[([0-9 ,]+)\][\r\n]+((.+|[\r\n])+)");
@@ -145,11 +169,13 @@ namespace YamlSerializer.Serialization
                 return System.Convert.FromBase64CharArray(s.ToCharArray(), 0, s.Length);
             } 
 
-            if ( node.Value == "" ) {
+            // 4) If value is empty, try to activate the object through Activator.
+            if ( node.Value == string.Empty ) {
                 return config.Activator.Activate(type);
-            } else {
-                return config.TypeConverter.ConvertFromString(node.Value, type);
             }
+
+            // Else throw an exception
+            throw new FormatException(string.Format("Unable to deserialize yaml node [{0}]", node));
         }
 
         object SequenceToObject(YamlSequence seq, Type type, Dictionary<YamlNode, object> appeared)
@@ -157,7 +183,15 @@ namespace YamlSerializer.Serialization
             if ( type == null )
                 type = typeof(object[]);
 
-            if ( type.IsArray ) {
+            // 1) Give a chance to deserialize through a IYamlSerializable interface
+            var serializable = config.Serializable.FindSerializable(context, null, type);
+            if (serializable != null)
+            {
+                return serializable.Deserialize(context, seq);
+            }
+
+            if (type.IsArray)
+            {
                 var lengthes= new int[type.GetArrayRank()];
                 GetLengthes(seq, 0, lengthes);
                 var array = (Array)type.GetConstructor(lengthes.Select(l => typeof(int) /* l.GetType() */).ToArray())
@@ -192,7 +226,14 @@ namespace YamlSerializer.Serialization
 
         object MappingToObject(YamlMapping map, Type type, object obj, Dictionary<YamlNode, object> appeared)
         {
-            // Naked !!map is constructed as Dictionary<object, object>.
+            // 1) Give a chance to deserialize through a IYamlSerializable interface
+            var serializable = config.Serializable.FindSerializable(context, obj, type);
+            if (serializable != null)
+            {
+                return serializable.Deserialize(context, map);
+            }
+            
+            // 2) Naked !!map is constructed as Dictionary<object, object>.
             if ( ( ( map.ShorthandTag() == "!!map" && type == null ) || type == typeof(Dictionary<object,object>) ) && obj == null ) {
                 var dict = new Dictionary<object, object>();
                 appeared.Add(map, dict);
@@ -201,7 +242,9 @@ namespace YamlSerializer.Serialization
                 return dict;
             }
 
-            if ( obj == null ) {
+            // 3) Give a chance to config.Activator
+            if ( obj == null ) 
+            {
                 obj = config.Activator.Activate(type);
                 appeared.Add(map, obj);
             } else {

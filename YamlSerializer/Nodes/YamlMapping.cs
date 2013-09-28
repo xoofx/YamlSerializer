@@ -63,7 +63,7 @@ namespace YamlSerializer
 
             // Unless !!map, the hash code is based on the node's identity.
             if ( ShorthandTag() != "!!map" )
-                return TypeUtils.HashCodeByRef<YamlMapping>.GetHashCode(this);
+                return TypeUtils.GetHashCode(this);
 
             var result = Tag.GetHashCode();
             foreach ( var item in this ) {

@@ -18,37 +18,18 @@ namespace YamlSerializer.Serialization
     /// </example>
     internal class YamlRepresenter: YamlNodeManipulator
     {
-        private string TypeNameToYamlTag(Type type)
-        {
-            /*
-            if ( TypeUtils.GetType(type.FullName) == null ) {
-                throw new ArgumentException(
-                    "Can not serialize (non public?) type '{0}'.".DoFormat(type.FullName));
-            }
-            */
-            if ( type == typeof(int) )
-                return YamlNode.ExpandTag("!!int");
-            if ( type == typeof(string) )
-                return YamlNode.ExpandTag("!!str");
-            if ( type == typeof(Double) )
-                return YamlNode.ExpandTag("!!float");
-            if ( type == typeof(bool) )
-                return YamlNode.ExpandTag("!!bool");
-            if ( type == typeof(object[]) )
-                return YamlNode.ExpandTag("!!seq");
+        private YamlConfig config;
+        private SerializerContext context;
+        Dictionary<object, YamlNode> appeared =
+            new Dictionary<object, YamlNode>(TypeUtils.EqualityComparerByRef<object>.Default);
 
-            return config.TagResolver.TagFromType(type);
-        }
-
-        public YamlNode ObjectToNode(object obj)
+        public YamlNode ObjectToNode(object obj, SerializerContext context)
         {
-            return ObjectToNode(obj, YamlNode.DefaultConfig);
-        }
+            if (context == null) throw new ArgumentNullException("context");
 
-        YamlConfig config;
-        public YamlNode ObjectToNode(object obj, YamlConfig config)
-        {
-            this.config = config;
+            this.context = context;
+            this.config = context.Config;
+
             appeared.Clear();
             if ( config.OmitTagForRootNode ) {
                 return ObjectToNode(obj, obj.GetType());
@@ -57,7 +38,7 @@ namespace YamlSerializer.Serialization
             }
         }
 
-        YamlNode ObjectToNode(object obj, Type expect)
+        private YamlNode ObjectToNode(object obj, Type expect)
         {
             if ( obj != null && obj.GetType().IsClass && ( !(obj is string) || ((string)obj).Length >= 1000 ) )
                 if ( appeared.ContainsKey(obj) )
@@ -79,26 +60,33 @@ namespace YamlSerializer.Serialization
                 if ( !appeared.ContainsKey(obj) )
                     appeared.Add(obj, node);
         }
-        Dictionary<object, YamlNode> appeared = 
-            new Dictionary<object, YamlNode>(TypeUtils.EqualityComparerByRef<object>.Default);
 
-        YamlNode ObjectToNodeSub(object obj, Type expect)
+        private YamlNode ObjectToNodeSub(object obj, Type expect)
         {
             // !!null
             if ( obj == null )
                 return str("!!null", "null");
 
+            // 1) give a chance to config.TagResolver
             YamlScalar node;
             if ( config.TagResolver.Encode(obj, out node) )
                 return node;
 
             var type = obj.GetType();
 
-            if ( obj is IntPtr || type.IsPointer )
+            // 2) give a chance to config.Serializable
+            var serializable = config.Serializable.FindSerializable(context, obj, expect ?? type);
+            if (serializable != null)
+            {
+                return serializable.Serialize(context, obj);
+            }
+
+            // 3) give a chance to specialized converter or config.TypeConverter
+            if (obj is IntPtr || type.IsPointer)
                 throw new ArgumentException("Pointer object '{0}' can not be serialized.".DoFormat(obj.ToString()));
 
             if ( obj is char ) {
-                // config.TypeConverter.ConvertToString("\0") does not show "\0"
+                // config.TypeConverter.ConvertTo("\0") does not show "\0"
                 var n = str(TypeNameToYamlTag(type), obj.ToString() );
                 return n;
             }
@@ -110,13 +98,14 @@ namespace YamlSerializer.Serialization
             }
 
             // TypeConverterAttribute 
-            if ( TypeConverterRegistry.IsTypeConverterSpecified(type) )
+            if ( config.TypeConverter.IsTypeConverterSpecified(type) )
                 return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(obj));
 
             // array
             if ( type.IsArray ) 
                 return CreateArrayNode((Array)obj);
 
+            // TODO check if we can handle generics here
             if ( type == typeof(Dictionary<object, object>) )
                 return DictionaryToMap(obj);
 
@@ -124,9 +113,7 @@ namespace YamlSerializer.Serialization
             if ( type.IsClass || type.IsValueType )
                 return CreateMapping(TypeNameToYamlTag(type), obj);
 
-            throw new NotImplementedException(
-                "Type '{0}' could not be written".DoFormat(type.FullName)
-            );
+            throw new NotImplementedException("Type '{0}' is not supported by serialization".DoFormat(type.FullName));
         }
 
         private YamlNode CreateArrayNode(Array array)
@@ -134,6 +121,7 @@ namespace YamlSerializer.Serialization
             Type type = array.GetType();
             return CreateArrayNodeSub(array, 0, new int[type.GetArrayRank()]);
         }
+
         private YamlNode CreateArrayNodeSub(Array array, int i, int[] indices)
         {
             var type= array.GetType();
@@ -155,13 +143,6 @@ namespace YamlSerializer.Serialization
                     sequence.Add(s);
                 }
             return sequence;
-        }
-        static long ArrayLength(Array array, int i)
-        {
-            long n = 1;
-            for ( ; i < array.Rank; i++ )
-                n *= array.GetLength(i);
-            return n;
         }
 
         private YamlNode CreateBinaryArrayNode(Array array)
@@ -277,7 +258,7 @@ namespace YamlSerializer.Serialization
             return dictionary;
         }
 
-        public YamlSequence CreateSequence(string tag, IEnumerator iter, Type expect)
+        private YamlSequence CreateSequence(string tag, IEnumerator iter, Type expect)
         {
             var sequence = seq();
             sequence.Tag = tag;
@@ -287,6 +268,30 @@ namespace YamlSerializer.Serialization
             while ( iter.MoveNext() )
                 sequence.Add(ObjectToNode(iter.Current, expect));
             return sequence;
+        }
+
+        private string TypeNameToYamlTag(Type type)
+        {
+            if (type == typeof(int))
+                return YamlNode.ExpandTag("!!int");
+            if (type == typeof(string))
+                return YamlNode.ExpandTag("!!str");
+            if (type == typeof(Double))
+                return YamlNode.ExpandTag("!!float");
+            if (type == typeof(bool))
+                return YamlNode.ExpandTag("!!bool");
+            if (type == typeof(object[]))
+                return YamlNode.ExpandTag("!!seq");
+
+            return config.TagResolver.TagFromType(type);
+        }
+
+        private static long ArrayLength(Array array, int i)
+        {
+            long n = 1;
+            for (; i < array.Rank; i++)
+                n *= array.GetLength(i);
+            return n;
         }
     }
 }

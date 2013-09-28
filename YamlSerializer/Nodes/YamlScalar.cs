@@ -233,7 +233,7 @@ namespace YamlSerializer
                 if ( ShorthandTag() == "!!str" ) {
                     return ( Value.GetHashCode() * 193 ) ^ Tag.GetHashCode();
                 } else {
-                    return TypeUtils.HashCodeByRef<YamlScalar>.GetHashCode(this);
+                    return TypeUtils.GetHashCode(this);
                 }
             }
         }

@@ -248,7 +248,7 @@ namespace YamlSerializer
             /// <exception cref="System.ArgumentNullException"><paramref name="obj"/> is null.</exception>
             public override int GetHashCode(T obj)
             {
-                return HashCodeByRef<T>.GetHashCode(obj);
+                return TypeUtils.GetHashCode(obj);
             }
 
             /// <summary>
@@ -260,38 +260,9 @@ namespace YamlSerializer
             static EqualityComparerByRef<T> _default = new EqualityComparerByRef<T>();
         }
 
-        /// <summary>
-        /// Calculate hash code by reference.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public class HashCodeByRef<T> where T: class
+        static public int GetHashCode(object value)
         {
-            /// <summary>
-            /// Calculate hash code by reference.
-            /// </summary>
-            new static public Func<T, int> GetHashCode { get; private set; }
-            /// <summary>
-            /// Initializes a new instance of the HashCodeByRef&lt;T&gt; class.
-            /// </summary>
-            static HashCodeByRef()
-            {
-                //var dm = new DynamicMethod(
-                //    "GetHashCodeByRef",                 // name of the dynamic method
-                //    typeof(int),                        // type of return value
-                //    new Type[] { 
-                //        typeof(T)                       // type of "this"
-                //    },
-                //    typeof(EqualityComparerByRef<T>));  // owner
-
-                //var ilg = dm.GetILGenerator();
-
-                //ilg.Emit(OpCodes.Ldarg_0);                          // push "this" on the stack
-                //ilg.Emit(OpCodes.Call,
-                //        typeof(object).GetMethod("GetHashCode"));   // returned value is on the stack
-                //ilg.Emit(OpCodes.Ret);                              // return
-                //GetHashCode = (Func<T, int>)dm.CreateDelegate(typeof(Func<T, int>));
-                GetHashCode = RuntimeHelpers.GetHashCode;
-            }
+            return RuntimeHelpers.GetHashCode(value);
         }
 
         class RehashableDictionary<K, V>: IDictionary<K, V> where K: class

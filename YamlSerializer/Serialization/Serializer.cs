@@ -644,17 +644,18 @@ namespace YamlSerializer.Serialization
     /// </remarks>
     public class Serializer
     {
-        static YamlRepresenter representer = new YamlRepresenter();
-        static YamlConstructor constructor = new YamlConstructor();
+        private readonly static YamlRepresenter Representer = new YamlRepresenter();
+        private readonly static YamlConstructor Constructor = new YamlConstructor();
 
-        YamlConfig config = null;
+        private readonly YamlConfig config = null;
 
         /// <summary>
         /// Initialize an instance of <see cref="Serializer"/> that obeys
         /// <see cref="YamlNode.DefaultConfig"/>.
         /// </summary>
-        public Serializer()
-        { }
+        public Serializer() : this(YamlNode.DefaultConfig)
+        {
+        }
 
         /// <summary>
         /// Initialize an instance of <see cref="Serializer"/> with custom <paramref name="config"/>.
@@ -662,7 +663,17 @@ namespace YamlSerializer.Serialization
         /// <param name="config">Custom <see cref="YamlConfig"/> to customize serialization.</param>
         public Serializer(YamlConfig config)
         {
+            if (config == null) throw new ArgumentNullException("config");
             this.config = config;
+        }
+
+        /// <summary>
+        /// Gets the configuration attached to this serializer.
+        /// </summary>
+        /// <value>The configuration.</value>
+        public YamlConfig Config
+        {
+            get { return config; }
         }
 
         /// <summary>
@@ -672,9 +683,9 @@ namespace YamlSerializer.Serialization
         /// <returns>YAML text.</returns>
         public string Serialize(object obj)
         {
-            var c = config != null ? config : YamlNode.DefaultConfig;
-            var node = representer.ObjectToNode(obj, c);
-            return node.ToYaml(c);
+            var context = config.CreateContext();
+            var node = Representer.ObjectToNode(obj, context);
+            return node.ToYaml(config);
         }
         /// <summary>
         /// Serialize C# object <paramref name="obj"/> into YAML text and write it into a <see cref="Stream"/> <paramref name="s"/>.
@@ -683,9 +694,9 @@ namespace YamlSerializer.Serialization
         /// <param name="obj">Object to be serialized.</param>
         public void Serialize(Stream s, object obj)
         {
-            var c = config != null ? config : YamlNode.DefaultConfig;
-            var node = representer.ObjectToNode(obj, c);
-            node.ToYaml(s, c);
+            var context = config.CreateContext();
+            var node = Representer.ObjectToNode(obj, context);
+            node.ToYaml(s, config);
         }
         /// <summary>
         /// Serialize C# object <paramref name="obj"/> into YAML text and write it into a <see cref="TextWriter"/> <paramref name="tw"/>.
@@ -694,9 +705,9 @@ namespace YamlSerializer.Serialization
         /// <param name="obj">Object to be serialized.</param>
         public void Serialize(TextWriter tw, object obj)
         {
-            var c = config != null ? config : YamlNode.DefaultConfig;
-            var node = representer.ObjectToNode(obj, c);
-            node.ToYaml(tw, c);
+            var context = config.CreateContext();
+            var node = Representer.ObjectToNode(obj, context);
+            node.ToYaml(tw, config);
         }
 
         /// <summary>
@@ -708,21 +719,17 @@ namespace YamlSerializer.Serialization
         /// <returns>C# object(s) deserialized from YAML text.</returns>
         public object[] Deserialize(string yaml, params Type[] types)
         {
-            var c = config != null ? config : YamlNode.DefaultConfig;
-
+            var context = config.CreateContext();
             var parser = new YamlParser();
-            var nodes = parser.Parse(yaml, c);
+            var nodes = parser.Parse(yaml, config);
             var objects = new List<object>();
             for ( int i = 0; i < nodes.Count; i++ ) {
                 var node = nodes[i];
-                if ( i < types.Length ) {
-                    objects.Add(constructor.NodeToObject(node, types[i], c));
-                } else {
-                    objects.Add(constructor.NodeToObject(node, null, c));
-                }
+                objects.Add(Constructor.NodeToObject(node, i < types.Length ? types[i] : null, context));
             }
             return objects.ToArray();
         }
+
         /// <summary>
         /// Deserialize C# object(s) from a YAML text in a <see cref="Stream"/> <paramref name="s"/>. 
         /// Since a YAML text can contain multiple YAML documents, each of which 
@@ -735,6 +742,7 @@ namespace YamlSerializer.Serialization
         {
             return Deserialize(new StreamReader(s), types);
         }
+
         /// <summary>
         /// Deserialize C# object(s) from a YAML text in a <see cref="TextReader"/> <paramref name="tr"/>. 
         /// Since a YAML text can contain multiple YAML documents, each of which 
@@ -748,99 +756,4 @@ namespace YamlSerializer.Serialization
             return Deserialize(tr.ReadToEnd(), types);
         }
     }
-
-    /// <summary>
-    /// Add .DoFunction method to string
-    /// </summary>
-    internal static class StringExtention
-    {
-        /// <summary>
-        /// Short expression of string.Format(XXX, arg1, arg2, ...)
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public static string DoFormat(this string format, params object[] args)
-        {
-            return string.Format(format, args);
-        }
-    }
-
-    /// <summary>
-    /// <para>Specify the way to store a property or field of some class or structure.</para>
-    /// <para>See <see cref="Serializer"/> for detail.</para>
-    /// </summary>
-    /// <seealso cref="YamlSerializeAttribute"/>
-    /// <seealso cref="Serializer"/>
-    public enum YamlSerializeMethod
-    {
-        /// <summary>
-        /// The property / field will not be stored.
-        /// </summary>
-        Never,
-        /// <summary>
-        /// When restored, new object is created by using the parameters in
-        /// the YAML data and assigned to the property / field. When the
-        /// property / filed is writeable, this is the default.
-        /// </summary>
-        Assign,
-        /// <summary>
-        ///  Only valid for a property / field that has a class or struct type.
-        ///  When restored, instead of recreating the whole class or struct,
-        ///  the members are independently restored. When the property / field
-        ///  is not writeable this is the default.
-        /// </summary>
-        Content,
-        /// <summary>
-        ///  Only valid for a property / field that has an  array type of a 
-        ///  some value type. The content of the array is stored in a binary
-        ///  format encoded in base64 style.
-        /// </summary>
-        Binary
-    }
-
-    /// <summary>
-    /// Specify the way to store a property or field of some class or structure.
-    /// 
-    /// See <see cref="Serializer"/> for detail.
-    /// </summary>
-    /// <seealso cref="YamlSerializeAttribute"/>
-    /// <seealso cref="Serializer"/>
-    public sealed class YamlSerializeAttribute: Attribute
-    {
-        internal YamlSerializeMethod SerializeMethod;
-        /// <summary>
-        /// Specify the way to store a property or field of some class or structure.
-        /// 
-        /// See <see cref="Serializer"/> for detail.
-        /// </summary>
-        /// <seealso cref="YamlSerializeAttribute"/>
-        /// <seealso cref="Serializer"/>
-        /// <param name="SerializeMethod">
-        ///  <para>
-        ///  - Never:   The property / field will not be stored.</para>
-        ///  
-        ///  <para>
-        ///  - Assign:  When restored, new object is created by using the parameters in
-        ///             the YAML data and assigned to the property / field. When the
-        ///             property / filed is writeable, this is the default.</para>
-        ///  
-        ///  <para>
-        ///  - Content: Only valid for a property / field that has a class or struct type.
-        ///             When restored, instead of recreating the whole class or struct,
-        ///             the members are independently restored. When the property / field
-        ///             is not writeable this is the default.</para>
-        /// 
-        ///  <para>
-        ///  - Binary:  Only valid for a property / field that has an  array type of a 
-        ///             some value type. The content of the array is stored in a binary
-        ///             format encoded in base64 style.</para>
-        /// 
-        /// </param>
-        public YamlSerializeAttribute(YamlSerializeMethod SerializeMethod)
-        {
-            this.SerializeMethod = SerializeMethod;
-        }
-    }
-
 }

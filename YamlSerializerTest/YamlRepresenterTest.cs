@@ -156,7 +156,7 @@ namespace YamlSerializerTest
             //var converter = new TypeConverterRegistry();
             //Assert.AreEqual(
             //    TestEnum.abc | TestEnum.あいう,
-            //    converter.ConvertFromString("abc, あいう", typeof(TestEnum)));
+            //    converter.ConvertFrom("abc, あいう", typeof(TestEnum)));
         }
 
         [Test]

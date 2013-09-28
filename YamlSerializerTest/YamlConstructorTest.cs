@@ -41,7 +41,7 @@ namespace YamlSerializerTest
             Assert.AreEqual(1, nodes.Count);
             var yamlConfig = new YamlConfig();
             yamlConfig.LookupAssemblies.Add(typeof(YamlConstructorTest).Assembly);
-            var restored = constructor.NodeToObject(nodes[0], yamlConfig);
+            var restored = constructor.NodeToObject(nodes[0], new SerializerContext(yamlConfig));
             var yaml2 = serializer.Serialize(restored);
             Assert.AreEqual(yaml, yaml2);
         }
@@ -49,15 +49,15 @@ namespace YamlSerializerTest
         [Flags]
         public enum TestEnum { abc = 1, あいう = 2 }
 
-        [YamlTypeConverter(typeof(TestStructTypeConverter))]
+        [YamlTypeConverter(typeof(TestStructYamlTypeConverter))]
         struct TestStructWithTypeConverter
         {
             public int a, b;
         }
 
-        class TestStructTypeConverter: ITypeConverter
+        class TestStructYamlTypeConverter: IYamlTypeConverter
         {
-            public object ConvertFromString(object context, System.Globalization.CultureInfo culture, string value)
+            public object ConvertFrom(CultureInfo culture, string value)
             {
                 string[] v = ( (string)value ).Split(new char[] { ',' });
                 var result = new TestStructWithTypeConverter();
@@ -66,7 +66,7 @@ namespace YamlSerializerTest
                 return result;
             }
 
-            public string ConvertToString(object context, System.Globalization.CultureInfo culture, object value)
+            public string ConvertTo(CultureInfo culture, object value)
             {
                 return ( (TestStructWithTypeConverter)value ).a + "," + ( (TestStructWithTypeConverter)value ).b;
             }
@@ -272,10 +272,10 @@ namespace YamlSerializerTest
         {
             var brush = new YamlMapping("Color", "Blue");
             brush.Tag = "!System.Drawing.SolidBrush";
-            Assert.Throws<MissingMethodException>(()=>constructor.NodeToObject(brush, YamlNode.DefaultConfig));
+            Assert.Throws<MissingMethodException>(()=>constructor.NodeToObject(brush, new SerializerContext(YamlNode.DefaultConfig)));
             var config = new YamlConfig();
             config.AddActivator<System.Drawing.SolidBrush>(() => new System.Drawing.SolidBrush(System.Drawing.Color.Black));
-            Assert.AreEqual(System.Drawing.Color.Blue, ((System.Drawing.SolidBrush)constructor.NodeToObject(brush, config)).Color);
+            Assert.AreEqual(System.Drawing.Color.Blue, ((System.Drawing.SolidBrush)constructor.NodeToObject(brush, new SerializerContext(config))).Color);
         }
 
         [Test]

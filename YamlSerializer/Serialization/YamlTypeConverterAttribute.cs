@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Globalization;
 
-namespace YamlSerializer
+namespace YamlSerializer.Serialization
 {
     [AttributeUsage(AttributeTargets.All)]
     public sealed class YamlTypeConverterAttribute : Attribute
