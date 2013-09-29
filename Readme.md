@@ -1,10 +1,10 @@
 ## YamlSerializer ##
 
-This is a fork of the project [https://yamlserializer.codeplex.com/](https://yamlserializer.codeplex.com/ "YamlSerializer") made by Osamu TAKEUCHI
+This is a fork of the project [YamlSerializer](https://yamlserializer.codeplex.com/) on codeplex made by Osamu TAKEUCHI
 
 This is mainly to evaluate Yaml in .NET, though this fork contains a couple of significant changes from original version:
 
- - Migrate the whole project to support Portable Class Library, in order to support .NET4.0+, Windows Phone 8, Windows App Store
+ - Add support for Portable Class Library (.NET4.0+, Windows Phone 8, Windows App Store)
  - Add `IYamlTypeConverter` in order to support type conversion (as `TypeConverter` are no longer accessible in .NET on WP8, Windows App Store)
  - Add `IYamlSerializable` to support custom serialization
  - Add several new options in the `YamlConfig` object:
