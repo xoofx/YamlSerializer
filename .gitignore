@@ -29,6 +29,7 @@ Thumbs.db
 *.suo
 *.dotCover
 .hg*
+*.GhostDoc.xml
 obj/
 ipch*/
 [Bb]in
