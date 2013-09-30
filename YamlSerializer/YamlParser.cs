@@ -277,11 +277,13 @@ namespace YamlSerializer
         private YamlScalar CreateScalar(string auto_detected_tag, Position pos)
         {
             AutoDetectTag(auto_detected_tag);
-            if ( state.tag == null || state.tag == "" /* ! was specified */ )
+            if ( string.IsNullOrEmpty(state.tag) /* ! was specified */ )
                 state.tag = YamlNode.DefaultTagPrefix + "str";
-            var value = new YamlScalar(state.tag, stringValue.ToString());
-            value.Row = pos.Row;
-            value.Column = pos.Column;
+            var value = new YamlScalar(state.tag, stringValue.ToString())
+                {
+                    Row = pos.Row, 
+                    Column = pos.Column
+                };
             stringValue.Length = 0;
             RegisterAnchorFor(value);
             state.tag = null;
@@ -289,24 +291,28 @@ namespace YamlSerializer
         }
         private YamlSequence CreateSequence(Position pos)
         {
-            if ( state.tag == null || state.tag == "" /* ! was specified */ )
+            if ( string.IsNullOrEmpty(state.tag) /* ! was specified */ )
                 state.tag = YamlNode.DefaultTagPrefix + "seq";
-            var seq = new YamlSequence();
-            seq.Tag = state.tag;
-            seq.Row = pos.Row;
-            seq.Column = pos.Column;
+            var seq = new YamlSequence
+                {
+                    Tag = state.tag, 
+                    Row = pos.Row, 
+                    Column = pos.Column
+                };
             RegisterAnchorFor(seq);
             state.tag = null;
             return seq;
         }
         private YamlMapping CreateMapping(Position pos)
         {
-            if ( state.tag == null || state.tag == "" /* ! was specified */ )
+            if ( string.IsNullOrEmpty(state.tag) /* ! was specified */ )
                 state.tag = YamlNode.DefaultTagPrefix + "map";
-            var map = new YamlMapping();
-            map.Tag = state.tag;
-            map.Row = pos.Row;
-            map.Column = pos.Column;
+            var map = new YamlMapping
+                {
+                    Tag = state.tag, 
+                    Row = pos.Row, 
+                    Column = pos.Column
+                };
             RegisterAnchorFor(map);
             state.tag = null;
             return map;
@@ -780,20 +786,20 @@ namespace YamlSerializer
         }
         bool sFlowLinePrefix(int n) // [69] 
         {
-            return sIndent(n) && Optional(sSeparateInLine);
+            return sIndent(n) && new RewindState(this).Optional(sSeparateInLine());
         }
         #endregion
         #region 6.4 Empty Lines
         private bool lEmpty(int n, Context c) // [70] 
         {
             return
-                RewindUnless(() => ( sLinePrefix(n, c) || sIndentLT(n) ) && bAsLineFeed());
+                new RewindState(this).Result( ( sLinePrefix(n, c) || sIndentLT(n) ) && bAsLineFeed());
         }
         #endregion
         #region 6.5 Line Folding
         private bool b_lTrimmed(int n, Context c) // [71] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 bNonContent() && OneAndRepeat(() => lEmpty(n, c))
                 );
         }
@@ -809,8 +815,8 @@ namespace YamlSerializer
         }
         private bool sFlowFolded(int n) // [74] 
         {   
-            return RewindUnless(() =>
-                Optional(sSeparateInLine) &&
+            return new RewindState(this).Result(
+                new RewindState(this).Optional(sSeparateInLine()) &&
                 b_lFolded(n, Context.FlowIn) &&
                 !cForbidden() &&
                 sFlowLinePrefix(n) 
@@ -832,16 +838,16 @@ namespace YamlSerializer
         }
         bool s_bComment() // [77] 
         {
-            return RewindUnless(() =>
-              	Optional(sSeparateInLine() && Optional(c_nbCommentText)) &&
+            return new RewindState(this).Result(
+              	OptionalBlabla(sSeparateInLine() && new RewindState(this).Optional(c_nbCommentText())) &&
                 bComment()
             );
         }
         bool lComment() // [78] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sSeparateInLine() &&
-                Optional(c_nbCommentText) &&
+                new RewindState(this).Optional(c_nbCommentText()) &&
                 bComment()
                 );
 
@@ -870,16 +876,16 @@ namespace YamlSerializer
         bool sSeparateLines(int n) // [81] 
         {
             return
-                RewindUnless(() => s_lComments() && sFlowLinePrefix(n)) ||
+                new RewindState(this).Result( s_lComments() && sFlowLinePrefix(n)) ||
                 sSeparateInLine();
         }
         #endregion
         #region 6.8 Directives
         bool lDirective() // [82] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '%' &&
-                RewindUnless(() =>
+                new RewindState(this).Result(
                     nsYamlDirective() ||
                     nsTagDirective() ||
                     nsReservedDirective()) &&
@@ -890,7 +896,7 @@ namespace YamlSerializer
         {
             var name = "";
             var args = new List<string>();
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Save(() => OneAndRepeat(nsChar), ref name) &&
                 Repeat(() =>
                     sSeparateInLine() && Save(() => OneAndRepeat(nsChar), s => args.Add(s))
@@ -902,7 +908,7 @@ namespace YamlSerializer
         bool nsYamlDirective() // [86] 
         {
             string version = "";
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Accept("YAML") &&
                 sSeparateInLine() &&
                 Save(() =>
@@ -922,7 +928,7 @@ namespace YamlSerializer
         {
             string tag_handle = "";
             string tag_prefix = "";
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Accept("TAG") && sSeparateInLine() && 
                 ErrorUnless(()=>
                     text[p++] == '!' &&
@@ -936,7 +942,7 @@ namespace YamlSerializer
         private bool cTagHandle(out string tag_handle) // [89]' 
         {
             var _tag_handle = tag_handle = "";
-            if ( Save(() => Optional(RewindUnless(() => 
+            if ( Save(() => OptionalBlabla(new RewindState(this).Result( 
                     Repeat(Charsets.nsWordChar) && text[p++] == '!'
                     )), 
                     s => _tag_handle = s) ) {
@@ -954,7 +960,7 @@ namespace YamlSerializer
         private bool c_nsLocalTagPrefix(out string tag_prefix) // [94] 
         {
             Debug.Assert(stringValue.Length == 0);
-            if ( RewindUnless(() =>
+            if ( new RewindState(this).Result(
                     text[p++] == '!' &&
                     Repeat(nsUriChar)
                 ) ) {
@@ -968,7 +974,8 @@ namespace YamlSerializer
         private bool nsGlobalTagPrefix(out string tag_prefix) // [95] 
         {
             Debug.Assert(stringValue.Length == 0);
-            if(RewindUnless(()=> nsTagChar() && Repeat(nsUriChar) )){
+            if (new RewindState(this).Result(nsTagChar() && Repeat(nsUriChar)))
+            {
                 tag_prefix = stringValue.ToString();
                 stringValue.Length = 0;
                 return true;
@@ -983,8 +990,8 @@ namespace YamlSerializer
             state.anchor = null;
             state.tag = null;
             return
-                ( c_nsTagProperty() && Optional(RewindUnless(()=> sSeparate(n, c) && c_nsAnchorProperty()) )) ||
-                ( c_nsAnchorProperty() && Optional(RewindUnless(()=>sSeparate(n, c) && c_nsTagProperty()) ));
+                ( c_nsTagProperty() && OptionalBlabla(new RewindState(this).Result(sSeparate(n, c) && c_nsAnchorProperty()) )) ||
+                (c_nsAnchorProperty() && OptionalBlabla(new RewindState(this).Result(sSeparate(n, c) && c_nsTagProperty())));
         }
         bool c_nsTagProperty() // [97]' 
         {
@@ -1014,7 +1021,7 @@ namespace YamlSerializer
         private bool c_nsShorthandTag() // [99]' 
         {
             var tag_handle = "";
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 cTagHandle(out tag_handle) &&
                 ErrorUnlessWithAdditionalCondition(() =>
                     OneAndRepeat(nsTagChar),
@@ -1056,7 +1063,7 @@ namespace YamlSerializer
         {
             string anchor_name = "";
             var pos = CurrentPosition;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '*' &&
                 Save(() => nsAnchorName(), s => anchor_name = s)
             ) &&
@@ -1128,7 +1135,7 @@ namespace YamlSerializer
         }
         private bool sDoubleEscaped(int n) // [112] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Repeat_sWhiteAsString() &&
                 text[p++] == '\\' && bNonContent() &&
                 Repeat(() => lEmpty(n, Context.FlowIn)) &&
@@ -1141,13 +1148,13 @@ namespace YamlSerializer
         }
         private bool nb_nsDoubleInLine() // [114] 
         {
-            return Repeat(() => RewindUnless(()=> Repeat_sWhiteAsString() && OneAndRepeat(nsDoubleChar)) );
+            return Repeat(() => new RewindState(this).Result(Repeat_sWhiteAsString() && OneAndRepeat(nsDoubleChar)));
         }
         private bool sDoubleNextLine(int n) // [115] 
         {
             return
                 sDoubleBreak(n) &&
-                Optional(RewindUnless(() =>
+                OptionalBlabla(new RewindState(this).Result(
                     nsDoubleChar() &&
                     nb_nsDoubleInLine() &&
                     ( sDoubleNextLine(n) || Repeat(Repeat_sWhiteAsString) )
@@ -1212,16 +1219,16 @@ namespace YamlSerializer
             return Repeat(nbSingleChar);
         }
         private bool nb_nsSingleInLine() // [123] 
-        {   
-            return Repeat(() => RewindUnless(()=> Repeat_sWhiteAsString() && OneAndRepeat(nsSingleChar)));
+        {
+            return Repeat(() => new RewindState(this).Result(Repeat_sWhiteAsString() && OneAndRepeat(nsSingleChar)));
         }
         private bool sSingleNextLine(int n) // [124] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sFlowFolded(n) && (
                     nsSingleChar() &&
                     nb_nsSingleInLine() &&
-                    Optional(sSingleNextLine(n) || Repeat_sWhiteAsString() )
+                    OptionalBlabla(sSingleNextLine(n) || Repeat_sWhiteAsString() )
                     )
                 );
         }
@@ -1301,7 +1308,7 @@ namespace YamlSerializer
         }
         private bool nb_nsPlainInLine(Context c) // [132] 
         {   
-            return Repeat(() => RewindUnless(() => 
+            return Repeat(() => new RewindState(this).Result( 
                 Repeat_sWhiteAsString() && 
                 OneAndRepeat(() => nsPlainChar(c))
             ));
@@ -1312,7 +1319,7 @@ namespace YamlSerializer
         }
         private bool s_nsPlainNextLine(int n, Context c) // [134] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sFlowFolded(n) &&
                 nsPlainChar(c) &&
                 nb_nsPlainInLine(c)
@@ -1345,11 +1352,11 @@ namespace YamlSerializer
         {
             YamlSequence sequence = null;
             Position pos = CurrentPosition;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '[' &&
                 ErrorUnlessWithAdditionalCondition(() =>
-                    Optional(sSeparate(n, c)) &&
-                    Optional(ns_sFlowSeqEntries(n, InFlow(c),
+                    OptionalBlabla(sSeparate(n, c)) &&
+                    OptionalBlabla(ns_sFlowSeqEntries(n, InFlow(c),
                                 sequence = CreateSequence(pos))) &&
                     text[p++] == ']',
                     c == Context.FlowOut,
@@ -1365,19 +1372,19 @@ namespace YamlSerializer
             return
                 nsFlowSeqEntry(n, c) &&
                 Action(() => sequence.Add(GetValue()) ) &&
-                Optional(sSeparate(n, c)) &&
-                Optional(RewindUnless(() =>
+                OptionalBlabla(sSeparate(n, c)) &&
+                OptionalBlabla(new RewindState(this).Result(
                     text[p++] == ',' &&
-                    Optional(sSeparate(n, c)) &&
-                    Optional(ns_sFlowSeqEntries(n, c, sequence))
+                    OptionalBlabla(sSeparate(n, c)) &&
+                    OptionalBlabla(ns_sFlowSeqEntries(n, c, sequence))
                     ));
         }
         private bool nsFlowSeqEntry(int n, Context c) // [139] 
         {
             YamlNode key = null;
             Position pos = CurrentPosition;
-            return 
-                RewindUnless(()=>
+            return
+                new RewindState(this).Result(
                     nsFlowPair(n, c, ref key) && 
                     Action(()=>{
                         var map= CreateMapping(pos);
@@ -1393,11 +1400,11 @@ namespace YamlSerializer
         {
             Position pos = CurrentPosition;
             YamlMapping mapping = null;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '{' &&
-                Optional(sSeparate(n, c)) &&
+                OptionalBlabla(sSeparate(n, c)) &&
                 ErrorUnlessWithAdditionalCondition(() =>
-                    Optional(ns_sFlowMapEntries(n, InFlow(c), mapping = CreateMapping(pos))) &&
+                    OptionalBlabla(ns_sFlowMapEntries(n, InFlow(c), mapping = CreateMapping(pos))) &&
                     text[p++] == '}',
                     c == Context.FlowOut,
                     "Closing brace }} was not found." +
@@ -1412,18 +1419,18 @@ namespace YamlSerializer
             return
                 nsFlowMapEntry(n, c, ref key) &&
                 Action(() => mapping.Add(key, GetValue()) ) &&
-                Optional(sSeparate(n, c)) &&
-                Optional(RewindUnless(() =>
+                OptionalBlabla(sSeparate(n, c)) &&
+                OptionalBlabla(new RewindState(this).Result(
                     text[p++] == ',' &&
-                    Optional(sSeparate(n, c)) &&
-                    Optional(ns_sFlowMapEntries(n, c, mapping))
+                    OptionalBlabla(sSeparate(n, c)) &&
+                    OptionalBlabla(ns_sFlowMapEntries(n, c, mapping))
                 ));
         }
         private bool nsFlowMapEntry(int n, Context c, ref YamlNode key) // [142] 
         {
             YamlNode _key = null;
             return (
-                RewindUnless(() => text[p++] == '?' && sSeparate(n, c) && nsFlowMapExplicitEntry(n, c, ref _key)) ||
+                new RewindState(this).Result( text[p++] == '?' && sSeparate(n, c) && nsFlowMapExplicitEntry(n, c, ref _key)) ||
                 nsFlowMapImplicitEntry(n, c, ref _key)
             ) &&
             Assign(out key, _key);
@@ -1448,14 +1455,14 @@ namespace YamlSerializer
             return
                 nsFlowYamlNode(n, c) &&
                 Assign(out key, GetValue()) && (
-                    RewindUnless(() => ( Optional(sSeparate(n, c)) && c_nsFlowMapSeparateValue(n, c) )) ||
+                    new RewindState(this).Result( ( OptionalBlabla(sSeparate(n, c)) && c_nsFlowMapSeparateValue(n, c) )) ||
                     eNode()
                 );
         }
         private bool c_nsFlowMapEmptyKeyEntry(int n, Context c, ref YamlNode key) // [146] 
         {
             YamlNode _key = null;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 eNode() /* Key */ &&
                 Assign(out _key, GetValue()) &&
                 c_nsFlowMapSeparateValue(n, c)
@@ -1464,9 +1471,9 @@ namespace YamlSerializer
         }
         private bool c_nsFlowMapSeparateValue(int n, Context c) // [147] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == ':' && !nsPlainSafe(c, text[p]) && (
-                    RewindUnless(() => sSeparate(n, c) && nsFlowNode(n, c)) ||
+                    new RewindState(this).Result( sSeparate(n, c) && nsFlowNode(n, c)) ||
                     eNode() /* Value */
                 )
             );
@@ -1476,15 +1483,15 @@ namespace YamlSerializer
             return
                 cFlowJsonNode(n, c) &&
                 Assign(out key, GetValue()) && (
-                    RewindUnless(() => Optional(sSeparate(n, c)) && c_nsFlowMapAdjacentValue(n, c)) ||
+                    new RewindState(this).Result( OptionalBlabla(sSeparate(n, c)) && c_nsFlowMapAdjacentValue(n, c)) ||
                     eNode()
                 );
         }
         private bool c_nsFlowMapAdjacentValue(int n, Context c) // [149] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == ':' && (
-                    RewindUnless(() => Optional(sSeparate(n, c)) && nsFlowNode(n, c)) ||
+                    new RewindState(this).Result( OptionalBlabla(sSeparate(n, c)) && nsFlowNode(n, c)) ||
                     eNode() /* Value */
                     )
                 );
@@ -1493,7 +1500,7 @@ namespace YamlSerializer
         {
             YamlNode _key = null;
             return (
-                RewindUnless(() => text[p++] == '?' && sSeparate(n, c) && nsFlowMapExplicitEntry(n, c, ref _key)) ||
+                new RewindState(this).Result( text[p++] == '?' && sSeparate(n, c) && nsFlowMapExplicitEntry(n, c, ref _key)) ||
                 nsFlowPairEntry(n, c, ref _key)
             ) &&
             Assign(out key, _key);
@@ -1523,7 +1530,7 @@ namespace YamlSerializer
         {
             /* At most 1024 characters altogether */
             int start = p;
-            if ( nsFlowYamlNode(-1 /* not used */, c) && Optional(sSeparateInLine) ) {
+            if ( nsFlowYamlNode(-1 /* not used */, c) && new RewindState(this).Optional(sSeparateInLine()) ) {
                 ErrorUnless(( p - start ) < 1024, "The implicit key was too long.");
                 return true;
             }
@@ -1533,7 +1540,7 @@ namespace YamlSerializer
         {
             /* At most 1024 characters altogether */
             int start = p;
-            if ( cFlowJsonNode(-1 /* not used */, c) && Optional(sSeparateInLine) ) {
+            if ( cFlowJsonNode(-1 /* not used */, c) && new RewindState(this).Optional(sSeparateInLine()) ) {
                 ErrorUnless(( p - start ) < 1024, "The implicit key was too long.");
                 return true;
             }
@@ -1563,20 +1570,20 @@ namespace YamlSerializer
                 c_nsAliasNode() ||
                 nsFlowYamlContent(n, c) ||
                 ( c_nsProperties(n, c) && (
-                    RewindUnless(()=> sSeparate(n, c) && nsFlowYamlContent(n, c) ) || eScalar() ) );
+                    new RewindState(this).Result(sSeparate(n, c) && nsFlowYamlContent(n, c)) || eScalar()));
         }
         private bool cFlowJsonNode(int n, Context c) // [160] 
         {
             return
-                Optional(RewindUnless(() => c_nsProperties(n, c) && sSeparate(n, c))) &&
+                OptionalBlabla(new RewindState(this).Result( c_nsProperties(n, c) && sSeparate(n, c))) &&
                 cFlowJsonContent(n, c);
         }
         private bool nsFlowNode(int n, Context c) // [161] 
         {
             if( c_nsAliasNode() ||
                 nsFlowContent(n, c) ||
-                RewindUnless(() => c_nsProperties(n, c) &&
-                    ( RewindUnless(() => sSeparate(n, c) && nsFlowContent(n, c)) || eScalar() )) )
+                new RewindState(this).Result( c_nsProperties(n, c) &&
+                    ( new RewindState(this).Result( sSeparate(n, c) && nsFlowContent(n, c)) || eScalar() )) )
                 return true;
             if( text[p] == '@' || text[p] == '`' )
                 Error("Reserved indicators '@' and '`' can't start a plain scalar.");
@@ -1598,9 +1605,9 @@ namespace YamlSerializer
         {
             var _m = m = 0;
             var _t = t = ChompingIndicator.Clip;
-            if ( RewindUnless(() =>
-                    ( ( cIndentationIndicator(ref _m) && Optional(cChompingIndicator(ref _t)) ) ||
-                      ( Optional(cChompingIndicator(ref _t)) && Optional(cIndentationIndicator(ref _m)) ) ) &&
+            if ( new RewindState(this).Result(
+                    ( ( cIndentationIndicator(ref _m) && OptionalBlabla(cChompingIndicator(ref _t)) ) ||
+                      ( OptionalBlabla(cChompingIndicator(ref _t)) && OptionalBlabla(cIndentationIndicator(ref _m)) ) ) &&
                     s_bComment()
                 ) ) {
                 m = _m;
@@ -1644,17 +1651,17 @@ namespace YamlSerializer
         }
         private bool lStripEmpty(int n) // [167] 
         {
-            return Repeat(() =>RewindUnless(()=> sIndentLE(n) && bNonContent())) &&
-                   Optional(lTrailComments(n));
+            return Repeat(() => new RewindState(this).Result(sIndentLE(n) && bNonContent())) &&
+                   OptionalBlabla(lTrailComments(n));
         }
         private bool lKeepEmpty(int n) // [168] 
         {
             return Repeat(() => lEmpty(n, Context.BlockIn)) &&
-                   Optional(lTrailComments(n));
+                   OptionalBlabla(lTrailComments(n));
         }
         private bool lTrailComments(int n) // [169] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sIndentLT(n) &&
                 c_nbCommentText() &&
                 bComment() &&
@@ -1664,8 +1671,8 @@ namespace YamlSerializer
         int AutoDetectIndentation(int n) // [170, 183]
         {
             int m = 0, max = 0, maxp = 0;
-            RewindUnless(() =>
-                Repeat(() => RewindUnless(() =>
+            new RewindState(this).Result(
+                Repeat(() => new RewindState(this).Result(
                     Save(() => Repeat(Charsets.sSpace), s => {
                         if ( s.Length > max ) {
                             max = s.Length;
@@ -1694,7 +1701,7 @@ namespace YamlSerializer
             int m = 0;
             var t = ChompingIndicator.Clip;
             Position pos = CurrentPosition;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '|' &&
                 c_bBlockHeader(out m, out t) &&
                 Action(() => { if ( m == 0 ) m = AutoDetectIndentation(n); }) &&
@@ -1704,7 +1711,7 @@ namespace YamlSerializer
         }
         bool l_nbLiteralText(int n) // [171] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Repeat(() => lEmpty(n, Context.BlockIn)) &&
                 sIndent(n) &&
                 Save(() => Repeat(nbChar), s => stringValue.Append(s) )
@@ -1712,7 +1719,7 @@ namespace YamlSerializer
         }
         bool b_nbLiteralNext(int n) // [172] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 bAsLineFeed() &&
                 !cForbidden() &&
                 l_nbLiteralText(n)
@@ -1720,8 +1727,8 @@ namespace YamlSerializer
         }
         private bool lLiteralContent(int n, ChompingIndicator t) // [173] 
         {
-            return RewindUnless(()=>
-                Optional(RewindUnless(()=>l_nbLiteralText(n) && Repeat(() => b_nbLiteralNext(n)) && bChompedLast(t))) &&
+            return new RewindState(this).Result(
+                OptionalBlabla(new RewindState(this).Result(l_nbLiteralText(n) && Repeat(() => b_nbLiteralNext(n)) && bChompedLast(t))) &&
                 lChompedEmpty(n, t)
             );
         }
@@ -1734,7 +1741,7 @@ namespace YamlSerializer
             int m = 0;
             var t = ChompingIndicator.Clip;
             Position pos = CurrentPosition;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == '>' &&
                 c_bBlockHeader(out m, out t) &&
                 WarningIf(t== ChompingIndicator.Keep,       
@@ -1746,7 +1753,7 @@ namespace YamlSerializer
         }
         private bool s_nbFoldedText(int n) // [175] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sIndent(n) &&
                 Save(() => nsChar() && Repeat(nbChar), s => stringValue.Append(s))
             );
@@ -1754,11 +1761,11 @@ namespace YamlSerializer
         private bool l_nbFoldedLines(int n) // [176] 
         {
             return s_nbFoldedText(n) &&
-                Repeat(() => RewindUnless(() => b_lFolded(n, Context.BlockIn) && s_nbFoldedText(n)));
+                Repeat(() => new RewindState(this).Result( b_lFolded(n, Context.BlockIn) && s_nbFoldedText(n)));
         }
         private bool s_nbSpacedText(int n) // [177] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sIndent(n) &&
                 Save(() => sWhite() && Repeat(nbChar), s => stringValue.Append(s))
             );
@@ -1772,14 +1779,14 @@ namespace YamlSerializer
         }
         private bool l_nbSpacedLines(int n) // [179] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 s_nbSpacedText(n) &&
-                Repeat(() => RewindUnless(() => b_lSpaced(n) && s_nbSpacedText(n)))
+                Repeat(() => new RewindState(this).Result( b_lSpaced(n) && s_nbSpacedText(n)))
             );
         }
         private bool l_nbSameLines(int n) // [180] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 Repeat(() => lEmpty(n, Context.BlockIn)) &&
                 ( l_nbFoldedLines(n) || l_nbSpacedLines(n) )
             );
@@ -1788,12 +1795,12 @@ namespace YamlSerializer
         {
             return 
                 l_nbSameLines(n) &&
-                Repeat(() => RewindUnless(() => bAsLineFeed() && !cForbidden() && l_nbSameLines(n)));
+                Repeat(() => new RewindState(this).Result( bAsLineFeed() && !cForbidden() && l_nbSameLines(n)));
         }
         private bool lFoldedContent(int n, ChompingIndicator t) // [182] 
         {
-            return RewindUnless(()=>
-                Optional(RewindUnless(() => l_nbDiffLines(n) && bChompedLast(t))) &&
+            return new RewindState(this).Result(
+                OptionalBlabla(new RewindState(this).Result( l_nbDiffLines(n) && bChompedLast(t))) &&
                 lChompedEmpty(n, t)
             );
         }
@@ -1806,7 +1813,7 @@ namespace YamlSerializer
             int m = AutoDetectIndentation(n);
             YamlSequence sequence = null;
             Position pos = new Position();
-            return OneAndRepeat(() => RewindUnless(() =>
+            return OneAndRepeat(() => new RewindState(this).Result(
                 sIndent(n + m) &&
                 Action(() => { if ( sequence == null ) pos = CurrentPosition; }) &&
                 text[p] == '-' && !Charsets.nsChar(text[p + 1]) &&
@@ -1827,7 +1834,7 @@ namespace YamlSerializer
         {
             int m;
             return
-                RewindUnless(() => sIndentCounted(n, out m) &&
+                new RewindState(this).Result( sIndentCounted(n, out m) &&
                     ( ns_lCompactSequence(n + 1 + m) || ns_lCompactMapping(n + 1 + m) )) ||
                 s_lBlockNode(n, c) ||
                 ( eNode() && s_lComments() );
@@ -1840,7 +1847,7 @@ namespace YamlSerializer
                 text[p] == '-' && !Charsets.nsChar(text[p + 1]) &&
                 Action(() => sequence = CreateSequence(pos)) && 
                 c_lBlockSeqEntry(n, sequence) &&
-                Repeat(() => RewindUnless(() => 
+                Repeat(() => new RewindState(this).Result( 
                     sIndent(n) &&
                     text[p] == '-' && !Charsets.nsChar(text[p + 1]) &&
                     c_lBlockSeqEntry(n, sequence))) &&
@@ -1874,26 +1881,35 @@ namespace YamlSerializer
         private bool c_lBlockMapExplicitEntry(int n, ref YamlNode key) // [189] 
         {
             YamlNode _key= null;
-            return RewindUnless(() =>
+            var result = new RewindState(this).Result(
                 c_lBlockMapExplicitKey(n, ref _key) &&
                 ErrorUnless(
-                    ( lBlockMapExplicitValue(n) || eNode() ),
+                    (lBlockMapExplicitValue(n) || eNode()),
                     "irregal block mapping explicit entry"
-                )
-            ) &&
-            Assign(out key, _key);
+                    )
+                );
+
+            if (result)
+            {
+                key = _key;
+            }
+            return result;
         }
         private bool c_lBlockMapExplicitKey(int n, ref YamlNode key) // [190] 
         {
-            return RewindUnless(() =>
+            var result = new RewindState(this).Result(
                 text[p++] == '?' &&
                 s_lBlockIndented(n, Context.BlockOut)
-            ) &&
-            Assign(out key, GetValue());
+                );
+            if (result)
+            {
+                key = GetValue();
+            }
+            return result;
         }
         private bool lBlockMapExplicitValue(int n) // [191] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sIndent(n) &&
                 text[p++] == ':' &&
                 s_lBlockIndented(n, Context.BlockOut)
@@ -1902,13 +1918,24 @@ namespace YamlSerializer
         private bool ns_lBlockMapImplicitEntry(int n, ref YamlNode key) // [192] 
         {
             YamlNode _key = null;
-            return RewindUnless(() =>
-                ( ns_sBlockMapImplicitKey() || eNode() ) &&
-                Assign(out _key, GetValue()) &&
-                c_lBlockMapImplicitValue(n)
-            ) &&
-            Assign(out key, _key);
+            var rewind = new RewindState(this);
+            
+            if (!(ns_sBlockMapImplicitKey() || eNode()))
+            {
+                return rewind.Result(false);
+            }
+
+            _key = GetValue();
+
+            if (!c_lBlockMapImplicitValue(n))
+            {
+                return rewind.Result(false);
+            }
+
+            key = _key;
+            return true;
         }
+
         private bool ns_sBlockMapImplicitKey() // [193] 
         {
             return c_sImplicitJsonKey(Context.BlockKey) ||
@@ -1916,7 +1943,7 @@ namespace YamlSerializer
         }
         private bool c_lBlockMapImplicitValue(int n) // [194] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 text[p++] == ':' &&
                 ( s_lBlockNode(n, Context.BlockOut) || ( eNode() && s_lComments() ) )
             );
@@ -1925,16 +1952,44 @@ namespace YamlSerializer
         {
             var mapping = CreateMapping(CurrentPosition);
             YamlNode key = null;
-            return RewindUnless(() =>
+            var rewind = new RewindState(this);
+            
+            if (!ns_lBlockMapEntry(n, ref key))
+                return rewind.Result(false);
+
+            mapping.Add(key, GetValue());
+            
+            // repeat while condition() returns true and 
+            // it reduces any part of text.
+            int start;
+            do {
+                start = p;
+                rewind = new RewindState(this);
+                if (sIndent(n) && ns_lBlockMapEntry(n, ref key))
+                {
+                    mapping.Add(key, GetValue());
+                }
+                else
+                {
+                    rewind.Result(false);
+                    break;
+                }
+            } while ( start != p );
+
+            SetValue(mapping);
+            return true;
+/* 
+            return new RewindState(this).Result(
                 ns_lBlockMapEntry(n, ref key) &&
                 Action(() => mapping.Add(key, GetValue())) &&
-                Repeat(() => RewindUnless(() => 
-                    sIndent(n) && 
+                Repeat(() => new RewindState(this).Result(
+                    sIndent(n) &&
                     ns_lBlockMapEntry(n, ref key) &&
                     Action(() => mapping.Add(key, GetValue()))
                 ))
             ) &&
             SetValue(mapping);
+ */ 
         }
         #endregion
         #region 8.2.3 Block Nodes
@@ -1944,9 +1999,10 @@ namespace YamlSerializer
                 s_lBlockInBlock(n, c) ||
                 s_lFlowInBlock(n);
         }
+
         bool s_lFlowInBlock(int n) // [197] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sSeparate(n + 1, Context.FlowOut) &&
                 nsFlowNode(n + 1, Context.FlowOut) &&
                 s_lComments()
@@ -1961,20 +2017,20 @@ namespace YamlSerializer
         }
         bool s_lBlockScalar(int n, Context c) // [199] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 sSeparate(n + 1, c) &&
-                Optional(RewindUnless(() => c_nsProperties(n + 1, c) && sSeparate(n + 1, c))) &&
+                OptionalBlabla(new RewindState(this).Result( c_nsProperties(n + 1, c) && sSeparate(n + 1, c))) &&
                 ( c_lLiteral(n) || c_lFolded(n) )
                 );
         }
         bool s_lBlockCollection(int n, Context c) // [200]
         {
-            return RewindUnless(() =>
-                Optional(RewindUnless(() => sSeparate(n + 1, c) && c_nsProperties(n + 1, c))) &&
+            return new RewindState(this).Result(
+                OptionalBlabla(new RewindState(this).Result( sSeparate(n + 1, c) && c_nsProperties(n + 1, c))) &&
                 s_lComments() &&
                 ( lBlockSequence(SeqSpaces(n, c)) || lBlockMapping(n) )
             ) ||
-            RewindUnless(() =>
+            new RewindState(this).Result(
                 s_lComments() &&
                 ( lBlockSequence(SeqSpaces(n, c)) || lBlockMapping(n) )
             );
@@ -2010,7 +2066,7 @@ namespace YamlSerializer
         }
         bool lDocumentSuffix() // [205] 
         {
-            return RewindUnless(() => 
+            return new RewindState(this).Result( 
                 cDocumentEnd() && 
                 s_lComments()
             );
@@ -2042,7 +2098,7 @@ namespace YamlSerializer
         }
         bool lExplicitDocument() // [208] 
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 cDirectivesEnd() &&
                 ( lBareDocument() || eNode() && s_lComments() && Action(() => ParseResult.Add(GetValue())) )
             );
@@ -2050,7 +2106,7 @@ namespace YamlSerializer
         bool lDirectiveDocument() // [209] 
         {
             YamlDirectiveAlreadyAppeared = false;
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 OneAndRepeat(lDirective) && lExplicitDocument()
             );
         }
@@ -2073,15 +2129,15 @@ namespace YamlSerializer
             stringValue.Length = 0;
             bool BomReduced = false;
             if ( Repeat(lDocumentPrefix) &&
-                Optional(lAnyDocument) &&
+                new RewindState(this).Optional(lAnyDocument()) &&
                 Repeat(() =>
                     TagPrefixes.Reset() &&
-                    RewindUnless(() =>
+                    new RewindState(this).Result(
                         OneAndRepeat(() => lDocumentSuffix() && Action(() => BomReduced = false)) &&
-                        Repeat(lDocumentPrefix) && Optional(lAnyDocument)) ||
-                    RewindUnless(() =>
+                        Repeat(lDocumentPrefix) && new RewindState(this).Optional(lAnyDocument())) ||
+                    new RewindState(this).Result(
                         Repeat(() => Action(() => BomReduced |= Charsets.cByteOrdermark(text[p])) && lDocumentPrefix() ) &&
-                        Optional(lExplicitDocument() && Action(() => BomReduced = false)))
+                        OptionalBlabla(lExplicitDocument() && Action(() => BomReduced = false)))
                     ) &&
                 EndOfFile() )
                 return true;

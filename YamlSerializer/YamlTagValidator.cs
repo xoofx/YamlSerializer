@@ -41,7 +41,7 @@ namespace YamlSerializer
                 taggingEntity() &&
                 Accept(':') &&
                 specific() &&
-                Optional(
+                OptionalBlabla(
                     Accept('#') &&
                     fragment()
                 ) &&
@@ -51,7 +51,7 @@ namespace YamlSerializer
         private bool taggingEntity()
         {
             return
-                RewindUnless(() =>
+                new RewindState(this).Result(
                     authorityName() &&
                     Accept(',') &&
                     date()
@@ -77,9 +77,9 @@ namespace YamlSerializer
 
         private bool DNScomp()
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 OneAndRepeat(alphaNum) &&
-                Repeat(() => RewindUnless(() =>
+                Repeat(() => new RewindState(this).Result(
                     Accept('-') &&
                     OneAndRepeat(alphaNum)
                 ))
@@ -101,7 +101,7 @@ namespace YamlSerializer
 
         private bool emailAddress()
         {
-            return RewindUnless(() =>
+            return new RewindState(this).Result(
                 OneAndRepeat(() => alphaNum() || Accept('-') || Accept('.') || Accept('_')) &&
                 Accept('@') &&
                 DNSname()
@@ -146,7 +146,7 @@ namespace YamlSerializer
         {
             return
                 Accept(pcharCharsetSub) ||
-                RewindUnless(() =>
+                new RewindState(this).Result(
                     Accept('%') &&
                     hexDig() &&
                     hexDig()

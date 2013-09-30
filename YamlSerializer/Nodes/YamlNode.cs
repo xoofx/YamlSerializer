@@ -314,6 +314,19 @@ namespace YamlSerializer
     /// </example>
     public abstract class YamlNode: IRehashableKey
     {
+        private static readonly Dictionary<string, string> ShortToLongTags = new Dictionary<string, string>()
+            {
+                {"!!map", "tag:yaml.org,2002:map"},
+                {"!!seq", "tag:yaml.org,2002:seq"},
+                {"!!str", "tag:yaml.org,2002:str"},
+                {"!!null", "tag:yaml.org,2002:null"},
+                {"!!bool", "tag:yaml.org,2002:bool"},
+                {"!!int", "tag:yaml.org,2002:int"},
+                {"!!float", "tag:yaml.org,2002:float"},
+            };
+
+        private static readonly Dictionary<string, string> LongToShortTags = new Dictionary<string, string>();
+
         #region Non content values
         /// <summary>
         /// Position in a YAML document, where the node appears. 
@@ -370,10 +383,13 @@ namespace YamlSerializer
                         "{0} is not a valid global tag.".DoFormat(value));
                 */
                 tag = value;
+                shortTag = null;
                 OnChanged();
             }
         }
         string tag;
+        private string shortTag;
+
 //        static YamlTagValidator TagValidator = new YamlTagValidator();
         /// <summary>
         /// YAML Tag for this node, which represents the type of node's value.
@@ -381,7 +397,7 @@ namespace YamlSerializer
         /// </summary>
         public string ShorthandTag()
         {
-            return ShorthandTag(Tag);
+            return shortTag ?? (shortTag = ShorthandTag(Tag));
         }
 
         #region Hash code
@@ -662,6 +678,13 @@ namespace YamlSerializer
             DefaultParser = new YamlParser();
             DefaultPresenter = new YamlPresenter();
             DefaultSerializerContext = new SerializerContext(DefaultConfig);
+
+            foreach (var shortToLongTag in ShortToLongTags)
+            {
+                LongToShortTags.Add(shortToLongTag.Value, shortToLongTag.Key);
+            }
+
+
         }
 
         /// <summary>
@@ -792,9 +815,17 @@ namespace YamlSerializer
         /// <returns>Tag in formal style.</returns>
         public static string ExpandTag(string tag)
         {
-            if ( tag.StartsWith("!!") )
-                return DefaultTagPrefix + tag.Substring(2);
-            return tag;
+            var newTag = tag;
+            if (newTag.StartsWith("!!"))
+            {
+                if (!ShortToLongTags.TryGetValue(tag, out newTag))
+                {
+                    newTag = new StringBuilder(DefaultTagPrefix.Length + tag.Length - 2).Append(DefaultTagPrefix)
+                                                                                      .Append(tag, 2, tag.Length - 2)
+                                                                                      .ToString();
+                }
+            }
+            return newTag;
         }
 
         /// <summary>
@@ -816,9 +847,20 @@ namespace YamlSerializer
         /// <returns>Tag in compact style.</returns>
         public static string ShorthandTag(string tag)
         {
-            if ( tag != null && tag.StartsWith(DefaultTagPrefix) )
-                return "!!" + tag.Substring(DefaultTagPrefix.Length);
-            return tag;
+            var newTag = tag;
+            if (newTag != null && newTag.StartsWith(DefaultTagPrefix))
+            {
+                if (!LongToShortTags.TryGetValue(tag, out newTag))
+                {
+                    newTag =
+                        new StringBuilder(2 + tag.Length - DefaultTagPrefix.Length).Append("!!")
+                                                                                   .Append(tag, DefaultTagPrefix.Length,
+                                                                                           tag.Length -
+                                                                                           DefaultTagPrefix.Length)
+                                                                                   .ToString();
+                }
+            }
+            return newTag;
         }
 
         #endregion

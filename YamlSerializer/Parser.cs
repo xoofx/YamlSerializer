@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using System.Text.RegularExpressions;
@@ -277,6 +278,53 @@ namespace YamlSerializer
             Rewind();
             return false;
         }
+
+        private const int AggressiveInlining = 256;
+
+        internal struct RewindState
+        {
+            private readonly Parser<State> parser; 
+            private readonly int savedp;
+            private readonly int stringValueLength;
+            private readonly State savedStatus;
+
+
+            [MethodImpl((MethodImplOptions)AggressiveInlining)] 
+            public RewindState(Parser<State> parser)
+            {
+                this.parser = parser;
+                savedp = parser.p;
+                stringValueLength = parser.stringValue.Length;
+                savedStatus = parser.state;
+            }
+
+            [MethodImpl((MethodImplOptions)AggressiveInlining)]
+            public bool Result(bool result)
+            {
+                if (result) return true;
+                parser.state = savedStatus;
+                parser.stringValue.Length = stringValueLength;
+                parser.p = savedp;
+                parser.Rewind();
+                return false;
+            }
+
+            [MethodImpl((MethodImplOptions)AggressiveInlining)]
+            public bool Repeat(int n, Func<bool> rule)
+            {
+                for (int i = 0; i < n; i++)
+                    if (!rule())
+                        return false;
+                return true;
+            }
+
+            public bool Optional(bool result)
+            {
+                Result(result);
+                return true;
+            }
+        }
+
         /// <summary>
         /// This method is called just after <see cref="RewindUnless"/> recovers <see cref="state"/>.
         /// Override it to do any additional operation for rewinding.
@@ -313,6 +361,7 @@ namespace YamlSerializer
         /// }
         /// </code>
         /// </example>
+        [MethodImpl((MethodImplOptions)AggressiveInlining)]
         protected bool Repeat(Func<bool> rule) // * 
         {
             // repeat while condition() returns true and 
@@ -355,84 +404,88 @@ namespace YamlSerializer
         /// }
         /// </code>
         /// </example>
+        [MethodImpl((MethodImplOptions)AggressiveInlining)]
         protected bool OneAndRepeat(Func<bool> rule)  // + 
         {
             return rule() && Repeat(rule);
         }
-        /// <summary>
-        /// Represents <code>n</code> times repeatition.
-        /// </summary>
-        /// <example>
-        /// <para>four-lines ::= (text line-break){4}</para>
-        ///
-        /// <para>Note: Do not forget <see cref="RewindUnless"/> if several
-        /// rules are sequentially appears in <see cref="Repeat(int,Func&lt;bool&gt;)"/> operator.</para>
-        /// <code>
-        /// bool FourLines()
-        /// {
-        ///     return
-        ///         Repeat(4, ()=>
-        ///             RewindUnless(()=>
-        ///                 Text() &amp;&amp;
-        ///                 LineBreak()
-        ///             )
-        ///         );
-        /// }
-        /// </code>
-        /// </example>
-        /// <param name="n">Repetition count.</param>
-        /// <param name="rule">Reduction rule to be repeated.</param>
-        /// <returns>true if the rule matches; otherwise false.</returns>
-        protected bool Repeat(int n, Func<bool> rule)
-        {
-            return RewindUnless(() => {
-                for ( int i = 0; i < n; i++ )
-                    if ( !rule() )
-                        return false;
-                return true;
-            });
-        }
-        /// <summary>
-        /// Represents at least <paramref name="min"/>, at most <paramref name="max"/> times repeatition.
-        /// </summary>
-        /// <example>
-        /// <para>google ::= "g" "o"{2,100} "g" "l" "e"</para>
-        /// <para>Note: Do not forget <see cref="RewindUnless"/> if several
-        /// rules are sequentially appears in <see cref="Repeat(int,int,Func&lt;bool&gt;)"/> operator.</para>
-        /// <code>
-        /// bool Google()
-        /// {
-        ///     return
-        ///         RewindUnless(()=>
-        ///             text[p++] == 'g' &amp;&amp;
-        ///                 Repeat(2, 100,
-        ///                     RewindUnless(()=>
-        ///                         text[p++] == 'o'
-        ///                     )
-        ///                 )
-        ///             text[p++] == 'g' &amp;&amp;
-        ///             text[p++] == 'l' &amp;&amp;
-        ///             text[p++] == 'e'
-        ///         );
-        /// }
-        /// </code>
-        /// </example>
-        /// <param name="min">Minimum repetition count. Negative value is treated as 0.</param>
-        /// <param name="max">Maximum repetition count. Negative value is treated as positive infinity.</param>
-        /// <param name="rule">Reduction rule to be repeated.</param>
-        /// <returns>true if the rule matches; otherwise false.</returns>
-        protected bool Repeat(int min, int max, Func<bool> rule)
-        {
-            return RewindUnless(() => {
-                for ( int i = 0; i < min; i++ )
-                    if ( !rule() )
-                        return false;
-                for ( int i = 0; i < max || max < 0; i++ )
-                    if ( !rule() )
-                        return true;
-                return true;
-            });
-        }
+
+        ///// <summary>
+        ///// Represents <code>n</code> times repeatition.
+        ///// </summary>
+        ///// <example>
+        ///// <para>four-lines ::= (text line-break){4}</para>
+        /////
+        ///// <para>Note: Do not forget <see cref="RewindUnless"/> if several
+        ///// rules are sequentially appears in <see cref="Repeat(int,Func&lt;bool&gt;)"/> operator.</para>
+        ///// <code>
+        ///// bool FourLines()
+        ///// {
+        /////     return
+        /////         Repeat(4, ()=>
+        /////             RewindUnless(()=>
+        /////                 Text() &amp;&amp;
+        /////                 LineBreak()
+        /////             )
+        /////         );
+        ///// }
+        ///// </code>
+        ///// </example>
+        ///// <param name="n">Repetition count.</param>
+        ///// <param name="rule">Reduction rule to be repeated.</param>
+        ///// <returns>true if the rule matches; otherwise false.</returns>
+        //protected bool Repeat(int n, Func<bool> rule)
+        //{
+        //    return RewindUnless( () => {
+        //        for ( int i = 0; i < n; i++ )
+        //            if ( !rule() )
+        //                return false;
+        //        return true;
+        //    });
+        //}
+
+        ///// <summary>
+        ///// Represents at least <paramref name="min"/>, at most <paramref name="max"/> times repeatition.
+        ///// </summary>
+        ///// <example>
+        ///// <para>google ::= "g" "o"{2,100} "g" "l" "e"</para>
+        ///// <para>Note: Do not forget <see cref="RewindUnless"/> if several
+        ///// rules are sequentially appears in <see cref="Repeat(int,int,Func&lt;bool&gt;)"/> operator.</para>
+        ///// <code>
+        ///// bool Google()
+        ///// {
+        /////     return
+        /////         RewindUnless(()=>
+        /////             text[p++] == 'g' &amp;&amp;
+        /////                 Repeat(2, 100,
+        /////                     RewindUnless(()=>
+        /////                         text[p++] == 'o'
+        /////                     )
+        /////                 )
+        /////             text[p++] == 'g' &amp;&amp;
+        /////             text[p++] == 'l' &amp;&amp;
+        /////             text[p++] == 'e'
+        /////         );
+        ///// }
+        ///// </code>
+        ///// </example>
+        ///// <param name="min">Minimum repetition count. Negative value is treated as 0.</param>
+        ///// <param name="max">Maximum repetition count. Negative value is treated as positive infinity.</param>
+        ///// <param name="rule">Reduction rule to be repeated.</param>
+        ///// <returns>true if the rule matches; otherwise false.</returns>
+        //protected bool Repeat(int min, int max, Func<bool> rule)
+        //{
+        //    return RewindUnless(() => {
+        //        for ( int i = 0; i < min; i++ )
+        //            if ( !rule() )
+        //                return false;
+        //        for ( int i = 0; i < max || max < 0; i++ )
+        //            if ( !rule() )
+        //                return true;
+        //        return true;
+        //    });
+        //}
+
         /// <summary>
         /// Represents BNF operator "?".
         /// </summary>
@@ -440,7 +493,7 @@ namespace YamlSerializer
         /// <para>file ::= header? body footer?</para>
         /// 
         /// <para>Note: Do not forget <see cref="RewindUnless"/> if several
-        /// rules are sequentially appears in <see cref="Optional(bool)"/> operator.</para>
+        /// rules are sequentially appears in <see cref="OptionalBlabla"/> operator.</para>
         /// <code>
         /// bool File()
         /// {
@@ -453,35 +506,37 @@ namespace YamlSerializer
         /// </example>
         /// <param name="rule">Reduction rule that is optional.</param>
         /// <returns>Always true.</returns>
-        protected bool Optional(bool rule) // ? 
+        protected bool OptionalBlabla(bool rule) // ? 
         {
-            return rule || true;
+            return true;
         }
-        /// <summary>
-        /// Represents BNF operator "?" (WITH rewinding wrap).
-        /// </summary>
-        /// <example>
-        /// file = header? body footer?
-        /// 
-        /// <para>Note: Do not forget <see cref="RewindUnless"/> if several
-        /// rules are sequentially appears in <see cref="Optional(Func&lt;bool&gt;)"/> operator.</para>
-        /// <code>
-        /// bool File()
-        /// {
-        ///     return
-        ///         Optional(Header) &amp;&amp;
-        ///         Body() &amp;&amp;
-        ///         Optional(Footer);
-        /// }
-        /// </code>
-        /// </example>
-        /// <param name="rule">Reduction rule that is optional.</param>
-        /// <returns>Always true.</returns>
-        protected bool Optional(Func<bool> rule) // ? 
-        {
-            return 
-                RewindUnless(()=> rule()) || true;
-        }
+
+        ///// <summary>
+        ///// Represents BNF operator "?" (WITH rewinding wrap).
+        ///// </summary>
+        ///// <example>
+        ///// file = header? body footer?
+        ///// 
+        ///// <para>Note: Do not forget <see cref="RewindUnless"/> if several
+        ///// rules are sequentially appears in <see cref="Optional(Func&lt;bool&gt;)"/> operator.</para>
+        ///// <code>
+        ///// bool File()
+        ///// {
+        /////     return
+        /////         Optional(Header) &amp;&amp;
+        /////         Body() &amp;&amp;
+        /////         Optional(Footer);
+        ///// }
+        ///// </code>
+        ///// </example>
+        ///// <param name="rule">Reduction rule that is optional.</param>
+        ///// <returns>Always true.</returns>
+        //protected bool Optional(Func<bool> rule) // ? 
+        //{
+        //    RewindUnless(rule);
+        //    return true;
+        //}
+
         #endregion
 
         #region Chars
