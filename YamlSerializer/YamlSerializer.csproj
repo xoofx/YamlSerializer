@@ -81,7 +81,7 @@
     <Compile Include="Nodes\YamlSequence.cs" />
     <Compile Include="Serialization\Serializer.cs" />
     <Compile Include="YamlTagPrefixes.cs" />
-    <Compile Include="YamlTagResolutionScheme.cs" />
+    <Compile Include="YamlTagResolver.cs" />
     <Compile Include="YamlTagValidator.cs" />
   </ItemGroup>
   <ItemGroup>
