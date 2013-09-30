@@ -31,9 +31,10 @@ namespace YamlSerializer.Serialization
                         if (serializable != null)
                         {
                             typeToSerializable.Add(type, serializable);
-                            break;
+                            return serializable;
                         }
                     }
+                    typeToSerializable.Add(type, null);
                 }
             }
 
