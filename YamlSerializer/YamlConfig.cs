@@ -444,9 +444,19 @@ namespace YamlSerializer
         /// <param name="tag">The tag.</param>
         public void AddTagAlias<T>(string tag)
         {
-            TagResolver.AddTagAlias<T>(tag);
-        }           
+            AddTagAlias(tag, typeof(T));
+        }
 
+        /// <summary>
+        /// Adds a rule for a tag that will map to a specific type.
+        /// </summary>
+        /// <param name="tag">The tag.</param>
+        /// <param name="type">The type.</param>
+        public void AddTagAlias(string tag, Type type)
+        {
+            TagResolver.AddTagAlias(tag, type);
+        }
+        
         /// <summary>
         /// Add a custom tag resolution rule.
         /// </summary>

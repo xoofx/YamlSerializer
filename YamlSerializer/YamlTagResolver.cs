@@ -142,12 +142,12 @@ namespace YamlSerializer
                 Update();
         }
 
-        public void AddTagAlias<T>(string tag)
+        public void AddTagAlias(string tag, Type type)
         {
             if (tag == null) throw new ArgumentNullException("tag");
 
-            aliasTagToType[tag] = typeof (T);
-            aliasTypeToTag[typeof (T)] = tag;
+            aliasTagToType[tag] = type;
+            aliasTypeToTag[type] = tag;
         }
 
         public void AddRule<T>(string regex, Func<Match, T> decode, Func<T, string> encode)
