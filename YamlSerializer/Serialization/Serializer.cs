@@ -215,15 +215,15 @@ namespace YamlSerializer.Serialization
     ///    // PublicProp: 0
     ///    // ClassPropByAssign: 
     ///    //   Capacity: 4
-    ///    //   ICollection.Items: 
+    ///    //   ~Items: 
     ///    //     - abc
     ///    // ReadOnlyClassProp: 
     ///    //   Capacity: 4
-    ///    //   ICollection.Items: 
+    ///    //   ~Items: 
     ///    //     - def
     ///    // ClassPropByContent: 
     ///    //   Capacity: 4
-    ///    //   ICollection.Items: 
+    ///    //   ~Items: 
     ///    //     - ghi
     ///    // PublicField: 0
     ///    // IntArrayField: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -318,7 +318,7 @@ namespace YamlSerializer.Serialization
     /// 
     /// <para>If an object implements <see cref="ICollection&lt;T&gt;"/>, <see cref="IList"/> or <see cref="IDictionary"/>
     /// the child objects are serialized as well its other public members. 
-    /// Pseudproperty <c>ICollection.Items</c> or <c>IDictionary.Entries</c> appears to hold the child objects.</para>
+    /// Pseudproperty <c>~Items</c> appears to hold the child objects.</para>
     /// 
     /// <h3>Multitime appearance of a same object</h3>
     /// 
@@ -355,13 +355,13 @@ namespace YamlSerializer.Serialization
     ///     // &amp;A !TestClass
     ///     // list: 
     ///     //   Capacity: 8
-    ///     //   ICollection.Items: 
+    ///     //   ~Items: 
     ///     //     - *A
     ///     //     - *A
     ///     //     - &amp;B !ChildClass
     ///     //       list: 
     ///     //         Capacity: 4
-    ///     //         ICollection.Items: 
+    ///     //         ~Items: 
     ///     //           - *A
     ///     //     - *A
     ///     //     - *B

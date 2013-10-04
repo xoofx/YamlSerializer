@@ -92,7 +92,7 @@ namespace YamlSerializer
                     return types[tag][0].GetTypeOfValue();
             }
 
-            return null;
+            return type;
         }
 
         public string TagFromType(Type type)

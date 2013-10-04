@@ -23,6 +23,7 @@ namespace YamlSerializer
         internal readonly ObjectActivator Activator = new ObjectActivator();
         internal YamlTagResolver TagResolver = new YamlTagResolver();
         private Func<YamlConfig, SerializerContext> contextFactory;
+        private int indentCount = 4;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="YamlConfig"/> class.
@@ -55,6 +56,24 @@ namespace YamlSerializer
         /// The order is only relevant when serialized to text. Order is not kept when deserializing a YAML mapping (as specified in the specs).
         /// </remarks>
         public bool OrderMappingKeyByName = true;
+
+        /// <summary>
+        /// If true, emits the Capacity properties for list. Default is false.
+        /// </summary>
+        public bool EmitCapacityForList = false;
+
+        public int IndentCount
+        {
+            get
+            {
+                return indentCount;
+            }
+            set
+            {
+                if (indentCount < 1) throw new ArgumentOutOfRangeException("Expecting argument to be > 0", "value");
+                indentCount = value;
+            }
+        }
 
         /// <summary>
         /// If true, all line breaks in the node value are normalized into "\r\n" 
@@ -402,6 +421,7 @@ namespace YamlSerializer
         /// </summary>
         public bool DontUseVerbatimTag = false;
 
+
         /// <summary>
         /// Gets or sets the context factory. Default is to create a <see cref="SerializerContext"/>
         /// </summary>
@@ -454,9 +474,10 @@ namespace YamlSerializer
         /// <param name="type">The type.</param>
         public void AddTagAlias(string tag, Type type)
         {
-            TagResolver.AddTagAlias(tag, type);
+            if (tag == null) throw new ArgumentNullException("tag");
+            TagResolver.AddTagAlias(tag.StartsWith("!") ? tag : "!" + tag, type);
         }
-        
+
         /// <summary>
         /// Add a custom tag resolution rule.
         /// </summary>

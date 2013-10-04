@@ -25,6 +25,7 @@ namespace YamlSerializer
         TextWriter yaml;
         int column, raw;
         YamlConfig config;
+        private string indent;
 
         public string ToYaml(YamlNode node)
         {
@@ -48,6 +49,8 @@ namespace YamlSerializer
         {
             this.config = config;
             this.yaml = yaml;
+            this.indent = new string(' ', config.IndentCount);
+
             MarkMultiTimeAppearingChildNodesToBeAnchored(node);
             yaml.NewLine = config.LineBreakForOutput;
 
@@ -104,18 +107,6 @@ namespace YamlSerializer
                 }
             };
             analyze(node);
-        }
-
-        private static string OnKeySelector(KeyValuePair<YamlNode, YamlNode> pair)
-        {
-
-            var scalar = pair.Key as YamlScalar;
-            if (scalar != null)
-            {
-                return scalar.Value;
-            }
-
-            return string.Empty;
         }
 
         internal static string NextAnchor(string anchor) // this is "protected" for test use 
@@ -251,7 +242,7 @@ namespace YamlSerializer
                         WriteLine("|-2");
                         s += "\r\n"; // guard
                     }
-                    var press = pres + "  ";
+                    var press = pres + indent;
                     for ( int p = 0; p < s.Length; ) {
                         var m = UntilBreak.Match(s, p); // does not fail because of the guard
                         Write(pres + s.Substring(p, m.Length));
@@ -407,7 +398,7 @@ namespace YamlSerializer
                 WriteLine(tag);
                 c = Context.Normal;
             }
-            string press = pres + "  ";
+            string press = pres + indent;
             foreach ( var item in node ) {
                 if ( c == Context.Normal )
                     Write(pres);
@@ -449,7 +440,7 @@ namespace YamlSerializer
                     WriteLine(tag);
                     c = Context.Normal;
                 }
-                string press = pres + "  ";
+                string press = pres + indent;
 
                 // Serialize by keeping an order on the keys (default true) in order to have a more predictive output for 
                 // versionning, comparison, editing...etc.
@@ -526,5 +517,37 @@ namespace YamlSerializer
         }
         // has a tag handle and the body contains only ns-tag-char.
         static Regex CanBeShorthand = new Regex(@"^!([-0-9a-zA-Z]*!)?[-0-9a-zA-Z%#;/?:@&=+$_.^*'\(\)]*$");
+
+
+        private static StringOrdinal OnKeySelector(KeyValuePair<YamlNode, YamlNode> pair)
+        {
+            var scalar = pair.Key as YamlScalar;
+            if (scalar != null)
+            {
+                return new StringOrdinal(scalar.Value);
+            }
+
+            return new StringOrdinal("~~");
+        }
+
+        private struct StringOrdinal : IComparable<StringOrdinal>, IComparable
+        {
+            private readonly string text;
+
+            public StringOrdinal(string text)
+            {
+                this.text = text;
+            }
+
+            public int CompareTo(StringOrdinal other)
+            {
+                return string.CompareOrdinal(text, other.text);
+            }
+
+            public int CompareTo(object obj)
+            {
+                return (obj is StringOrdinal) ? CompareTo((StringOrdinal)obj) : 0;
+            }
+        }
     }
 }

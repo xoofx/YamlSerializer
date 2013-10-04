@@ -54,6 +54,12 @@ namespace YamlSerializer.Serialization
                     System.Reflection.BindingFlags.Public
                     ) ) {
                 var prop = p; // create closures with this local variable
+                
+                if (Members.ContainsKey(prop.Name))
+                {
+                    continue;
+                }
+
                 // not readable or parameters required to access the property
                 if ( !prop.CanRead || prop.GetGetMethod(false) == null || prop.GetIndexParameters().Count() != 0 )
                     continue;
@@ -61,6 +67,7 @@ namespace YamlSerializer.Serialization
                 Action<object, object> set = null;
                 if ( prop.CanWrite && prop.GetSetMethod(false) != null )
                     set = (obj, value) => prop.SetValue(obj, value, EmptyObjectArray);
+
                 RegisterMember(type, prop, prop.PropertyType, get, set);
             }
 
@@ -87,6 +94,9 @@ namespace YamlSerializer.Serialization
                     KeyType = itype.GetGenericArguments()[0];
                     ValueType = itype.GetGenericArguments()[1];
                 }
+
+                // If the dictionary has no property we can handle it directly
+                IsPureDictionary = IsPure();
             } else
                 // implements ICollection<T> 
                 if ( ( itype = type.GetInterface(typeof(ICollection<>)) ) != null ) {
@@ -97,11 +107,14 @@ namespace YamlSerializer.Serialization
                     CollectionClear = obj => clear.Invoke(obj, new object[0]);
                     var isReadOnly = itype.GetProperty("IsReadOnly").GetGetMethod();
                     IsReadOnly = obj => (bool)isReadOnly.Invoke(obj, new object[0]);
-                } else
+                    IsPureList = IsPure("Capacity");
+                }
+                else
                     // implements IList 
-                    if ( ( itype = type.GetInterface(typeof(IList)) ) != null ) {
-                        var add = itype.GetMethod("Add", new Type[] { typeof(object) });
-                        CollectionAdd = (obj, value) => add.Invoke(obj, new object[] { value });
+                    if ((itype = type.GetInterface(typeof(IList))) != null)
+                    {
+                        var add = itype.GetMethod("Add", new Type[] {typeof(object)});
+                        CollectionAdd = (obj, value) => add.Invoke(obj, new object[] {value});
                         var clear = itype.GetMethod("Clear", new Type[0]);
                         CollectionClear = obj => clear.Invoke(obj, new object[0]);
                         /* IList<T> implements ICollection<T>
@@ -111,6 +124,8 @@ namespace YamlSerializer.Serialization
                             ValueType = itype.GetGenericArguments()[0];     
                          */
                         IsReadOnly = obj => ((System.Collections.IList)obj).IsReadOnly;
+                        // Remove Capacity
+                        IsPureList = IsPure("Capacity");
                     }
         }
 
@@ -171,10 +186,27 @@ namespace YamlSerializer.Serialization
             if ( accessor.ShouldSeriealize == null )
                 accessor.ShouldSeriealize = obj => true;
 
-            Accessors.Add(m.Name, accessor);
+            Members.Add(m.Name, accessor);
+        }
+
+        private bool IsPure(params string[] excludeField)
+        {
+            // If the dictionary has no property we can handle it directly
+            var isPure = true;
+            foreach (var member in Members)
+            {
+                if (member.Value.Set != null && member.Value.SerializeMethod != YamlSerializeMethod.Never && !excludeField.Contains(member.Key))
+                {
+                    isPure = false;
+                    break;
+                }
+            }
+            return isPure;
         }
 
         public bool IsDictionary = false;
+        public bool IsPureDictionary = false;
+        public bool IsPureList = false;
         public Action<object, object> CollectionAdd = null;
         public Action<object> CollectionClear = null;
         public Type KeyType = null;
@@ -189,14 +221,16 @@ namespace YamlSerializer.Serialization
             public Func<object, bool> ShouldSeriealize;
             public Type Type;
         }
-        Dictionary<string, MemberInfo> Accessors = new Dictionary<string, MemberInfo>();
+
+        public readonly Dictionary<string, MemberInfo> Members = new Dictionary<string, MemberInfo>();
+
         public MemberInfo this[string name]
         {
-            get { return Accessors[name]; }
+            get { return Members[name]; }
         }
         public bool ContainsKey(string name)
         {
-            return Accessors.ContainsKey(name);
+            return Members.ContainsKey(name);
         }
 
         /// <summary>
@@ -207,8 +241,8 @@ namespace YamlSerializer.Serialization
         /// <returns></returns>
         public object this[object obj, string name]
         {
-            get { return Accessors[name].Get(obj); }
-            set { Accessors[name].Set(obj, value); }
+            get { return Members[name].Get(obj); }
+            set { Members[name].Set(obj, value); }
         }
 
         /// <summary>
@@ -217,7 +251,7 @@ namespace YamlSerializer.Serialization
         /// <returns></returns>
         public Dictionary<string, MemberInfo>.Enumerator GetEnumerator()
         {
-            return Accessors.GetEnumerator();
+            return Members.GetEnumerator();
         }
     }
 }

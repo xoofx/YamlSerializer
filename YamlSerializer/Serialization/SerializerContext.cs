@@ -19,6 +19,11 @@ namespace YamlSerializer.Serialization
             get { return config; }
         }
 
+        public string TagFromType(Type type)
+        {
+            return config.TagResolver.TagFromType(type);
+        }
+
         public Type ResolveType(string typeName)
         {
             return TypeUtils.GetType(Config.LookupAssemblies, typeName);

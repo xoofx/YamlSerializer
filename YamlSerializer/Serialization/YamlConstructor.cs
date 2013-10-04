@@ -107,7 +107,7 @@ namespace YamlSerializer.Serialization
                 }
                 else if (node is YamlSequence)
                 {
-                    obj = SequenceToObject((YamlSequence) node, type, appeared);
+                    obj = SequenceToObject((YamlSequence) node, type, null, appeared);
                 }
                 else
                     throw new NotImplementedException();
@@ -129,7 +129,7 @@ namespace YamlSerializer.Serialization
             var serializable = config.Serializable.FindSerializable(context, null, type);
             if (serializable != null)
             {
-                return serializable.Deserialize(context, node);
+                return serializable.Deserialize(context, node, type);
             }
 
             // 2) Give a chance to IYamlTypeConverter
@@ -178,7 +178,7 @@ namespace YamlSerializer.Serialization
             throw new FormatException(string.Format("Unable to deserialize yaml node [{0}]", node));
         }
 
-        object SequenceToObject(YamlSequence seq, Type type, Dictionary<YamlNode, object> appeared)
+        object SequenceToObject(YamlSequence seq, Type type, object obj, Dictionary<YamlNode, object> appeared)
         {
             if ( type == null )
                 type = typeof(object[]);
@@ -187,7 +187,19 @@ namespace YamlSerializer.Serialization
             var serializable = config.Serializable.FindSerializable(context, null, type);
             if (serializable != null)
             {
-                return serializable.Deserialize(context, seq);
+                return serializable.Deserialize(context, seq, type);
+            }
+
+            // 3) Give a chance to config.Activator
+            if (obj == null)
+            {
+                obj = config.Activator.Activate(type);
+                appeared.Add(seq, obj);
+            }
+            else
+            {
+                if (appeared.ContainsKey(seq))
+                    throw new InvalidOperationException("This member is not writeable: {0}".DoFormat(obj.ToString()));
             }
 
             if (type.IsArray)
@@ -200,6 +212,22 @@ namespace YamlSerializer.Serialization
                 var indices = new int[type.GetArrayRank()];
                 SetArrayElements(array, seq, 0, indices, type.GetElementType(), appeared);
                 return array;
+            }
+
+
+            var collection = obj as ICollection;
+            if (collection != null)
+            {
+                var access = ObjectMemberAccessor.FindFor(type);
+
+                // If this is a pure list
+                if (access.CollectionAdd == null)
+                    throw new FormatException("{0} is not a collection type.".DoFormat(type.FullName));
+                access.CollectionClear(obj);
+                foreach (var item in seq)
+                    access.CollectionAdd(obj, NodeToObjectInternal(item, access.ValueType, appeared));
+
+                return obj;
             }
 
             // TODO Add support for lists
@@ -231,16 +259,16 @@ namespace YamlSerializer.Serialization
             var serializable = config.Serializable.FindSerializable(context, obj, type);
             if (serializable != null)
             {
-                return serializable.Deserialize(context, map);
+                return serializable.Deserialize(context, map, type);
             }
             
             // 2) Naked !!map is constructed as Dictionary<object, object>.
             if ( ( ( map.ShorthandTag() == "!!map" && type == null ) || type == typeof(Dictionary<object,object>) ) && obj == null ) {
-                var dict = new Dictionary<object, object>();
-                appeared.Add(map, dict);
+                var objectDictionary = new Dictionary<object, object>();
+                appeared.Add(map, objectDictionary);
                 foreach ( var entry in map ) 
-                    dict.Add(NodeToObjectInternal(entry.Key, null, appeared), NodeToObjectInternal(entry.Value, null, appeared));
-                return dict;
+                    objectDictionary.Add(NodeToObjectInternal(entry.Key, null, appeared), NodeToObjectInternal(entry.Value, null, appeared));
+                return objectDictionary;
             }
 
             if (type == null)
@@ -258,45 +286,61 @@ namespace YamlSerializer.Serialization
                     throw new InvalidOperationException("This member is not writeable: {0}".DoFormat(obj.ToString()));
             }
 
+            var dictionary = obj as IDictionary;
             var access = ObjectMemberAccessor.FindFor(type);
-            foreach(var entry in map){
-                if ( obj == null )
+            foreach (var entry in map)
+            {
+                if (obj == null)
                     throw new InvalidOperationException("Object is not initialized");
+
+                // If this is a pure dictionary, we can directly add key,value to it
+                if (dictionary != null && access.IsPureDictionary)
+                {
+                    dictionary.Add(NodeToObjectInternal(entry.Key, access.KeyType, appeared), NodeToObjectInternal(entry.Value, access.ValueType, appeared));
+                    continue;
+                }
+
+                // Else go the long way
                 var name = (string)NodeToObjectInternal(entry.Key, typeof(string), appeared);
-                switch ( name ) {
-                case "ICollection.Items":
-                    if ( access.CollectionAdd == null )
-                        throw new FormatException("{0} is not a collection type.".DoFormat(type.FullName));
-                    access.CollectionClear(obj);                                           
-                    foreach(var item in (YamlSequence)entry.Value)
-                        access.CollectionAdd(obj, NodeToObjectInternal(item, access.ValueType, appeared));
-                    break;
-                case "IDictionary.Entries":
-                    if ( !access.IsDictionary )
-                        throw new FormatException("{0} is not a dictionary type.".DoFormat(type.FullName));
-                    var dict = obj as IDictionary;
-                    dict.Clear();
-                    foreach ( var child in (YamlMapping)entry.Value )
-                        dict.Add(NodeToObjectInternal(child.Key, access.KeyType, appeared), NodeToObjectInternal(child.Value, access.ValueType, appeared));
-                    break;
-                default:
-                    if(!access.ContainsKey(name))
-                        throw new FormatException("{0} does not have a member {1}.".DoFormat(type.FullName, name));
-                    switch ( access[name].SerializeMethod ) {
-                    case YamlSerializeMethod.Assign:
-                        access[obj, name] = NodeToObjectInternal(entry.Value, access[name].Type, appeared);
-                        break;
-                    case YamlSerializeMethod.Content:
-                        MappingToObject((YamlMapping)entry.Value, access[name].Type, access[obj, name], appeared);
-                        break;
-                    case YamlSerializeMethod.Binary:
-                        access[obj, name] = ScalarToObject((YamlScalar)entry.Value, access[name].Type);
-                        break;
-                    default:
-                        throw new InvalidOperationException(
-                            "Member {0} of {1} is not serializable.".DoFormat(name, type.FullName));
+
+                if (name == "~Items")
+                {
+                    if (entry.Value is YamlSequence)
+                    {
+                        SequenceToObject((YamlSequence)entry.Value, obj.GetType(), obj, appeared);
                     }
-                    break;
+                    else if (entry.Value is YamlMapping)
+                    {
+                        if (!access.IsDictionary || dictionary == null)
+                            throw new FormatException("{0} is not a dictionary type.".DoFormat(type.FullName));
+                        dictionary.Clear();
+                        foreach (var child in (YamlMapping)entry.Value)
+                            dictionary.Add(NodeToObjectInternal(child.Key, access.KeyType, appeared), NodeToObjectInternal(child.Value, access.ValueType, appeared));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Member {0} of {1} is not serializable.".DoFormat(name, type.FullName));
+                    }
+                }
+                else
+                {
+                    if (!access.ContainsKey(name))
+                        throw new FormatException("{0} does not have a member {1}.".DoFormat(type.FullName, name));
+                    switch (access[name].SerializeMethod)
+                    {
+                        case YamlSerializeMethod.Assign:
+                            access[obj, name] = NodeToObjectInternal(entry.Value, access[name].Type, appeared);
+                            break;
+                        case YamlSerializeMethod.Content:
+                            MappingToObject((YamlMapping)entry.Value, access[name].Type, access[obj, name], appeared);
+                            break;
+                        case YamlSerializeMethod.Binary:
+                            access[obj, name] = ScalarToObject((YamlScalar)entry.Value, access[name].Type);
+                            break;
+                        default:
+                            throw new InvalidOperationException(
+                                "Member {0} of {1} is not serializable.".DoFormat(name, type.FullName));
+                    }
                 }
             }
             return obj;

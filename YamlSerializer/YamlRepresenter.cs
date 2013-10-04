@@ -46,7 +46,7 @@ namespace YamlSerializer.Serialization
 
             var node = ObjectToNodeSub(obj, expect);
 
-            if ( expect != null && expect != typeof(Object) )
+            if ( node != null && expect != null && expect != typeof(Object) )
                 node.Properties["expectedTag"] = TypeNameToYamlTag(expect);
 
             AppendToAppeared(obj, node);
@@ -78,7 +78,7 @@ namespace YamlSerializer.Serialization
             var serializable = config.Serializable.FindSerializable(context, obj, expect ?? type);
             if (serializable != null)
             {
-                return serializable.Serialize(context, obj);
+                return serializable.Serialize(context, obj, type);
             }
 
             // 3) give a chance to specialized converter or config.TypeConverter
@@ -106,12 +106,16 @@ namespace YamlSerializer.Serialization
                 return CreateArrayNode((Array)obj);
 
             // TODO check if we can handle generics here
-            if ( type == typeof(Dictionary<object, object>) )
-                return DictionaryToMap(obj);
+            if (type == typeof(Dictionary<object, object>))
+            {
+                var yamlMapping = map();
+                DictionaryToMap(obj, yamlMapping);
+                return yamlMapping;
+            }
 
             // class / struct
             if ( type.IsClass || type.IsValueType )
-                return CreateMapping(TypeNameToYamlTag(type), obj);
+                return CreateMappingOrSequence(TypeNameToYamlTag(type), obj);
 
             throw new NotImplementedException("Type '{0}' is not supported by serialization".DoFormat(type.FullName));
         }
@@ -183,9 +187,29 @@ namespace YamlSerializer.Serialization
             return node;
         }
 
-        private YamlMapping CreateMapping(string tag, object obj /*, bool by_content */ )
+        private YamlNode CreateMappingOrSequence(string tag, object obj /*, bool by_content */ )
         {
             var type = obj.GetType();
+            var accessor = ObjectMemberAccessor.FindFor(type);
+
+
+            // In the case of a pure list, we are creating directly a sequence
+            if (accessor.IsPureList)
+            {
+                // if the object is ICollection<> or IList
+
+                var isReadOnly = accessor.IsReadOnly(obj);
+                if (accessor.CollectionAdd != null && !isReadOnly)
+                {
+                    var iter = ((IEnumerable)obj).GetEnumerator();
+                    if (iter.MoveNext())
+                    { // Count > 0
+                        iter.Reset();
+                        return CreateSequence("!!seq", iter, accessor.ValueType);
+                    }
+                }
+                return null;
+            }
 
             /*
             if ( type.IsClass && !by_content && type.GetConstructor(Type.EmptyTypes) == null )
@@ -196,12 +220,13 @@ namespace YamlSerializer.Serialization
             mapping.Tag = tag;
             AppendToAppeared(obj, mapping);
 
+            var isList = obj is IList;
+
             // iterate props / fields
-            var accessor = ObjectMemberAccessor.FindFor(type);
             foreach ( var entry in accessor ) {
                 var name = entry.Key;
                 var access = entry.Value;
-                if ( !access.ShouldSeriealize(obj) )
+                if (!access.ShouldSeriealize(obj) || (isList && name == "Capacity" && !config.EmitCapacityForList))
                     continue;
                 if ( access.SerializeMethod == YamlSerializeMethod.Binary ) {
                     var array = CreateBinaryArrayNode((Array)access.Get(obj));
@@ -211,39 +236,49 @@ namespace YamlSerializer.Serialization
                 } else {
                     try {
                         var value = ObjectToNode(access.Get(obj), access.Type);
-                        if( (access.SerializeMethod != YamlSerializeMethod.Content) ||
-                            !(value is YamlMapping) || ((YamlMapping)value).Count>0 )
-                        mapping.Add(MapKey(entry.Key), value);
-                    } catch {
+                        if (value != null && (access.SerializeMethod != YamlSerializeMethod.Content ||
+                            !(value is YamlMapping) || ((YamlMapping)value).Count>0 ))
+                        {
+                            mapping.Add(MapKey(entry.Key), value);
+                        }
+                    } 
+                    catch (Exception ex)
+                    {
+                        // TODO log this exception
                     }
                 }
             }
             // if the object is IDictionary or IDictionary<,>
-            if ( accessor.IsDictionary && !accessor.IsReadOnly(obj) ) {
-                var dictionary = DictionaryToMap(obj);
-                if ( dictionary.Count > 0 )
-                    mapping.Add(MapKey("IDictionary.Entries"), dictionary);
-            } else {
+            if ( accessor.IsDictionary && !accessor.IsReadOnly(obj) ) 
+            {
+                DictionaryToMap(obj, mapping);
+            } 
+            else 
+            {
                 // if the object is ICollection<> or IList
                 if ( accessor.CollectionAdd != null && !accessor.IsReadOnly(obj)) {
                     var iter = ( (IEnumerable)obj ).GetEnumerator();
                     if ( iter.MoveNext() ) { // Count > 0
                         iter.Reset();
-                        mapping.Add(MapKey("ICollection.Items"), CreateSequence("!!seq", iter, accessor.ValueType));
+                        mapping.Add(MapKey("~Items"), CreateSequence("!!seq", iter, accessor.ValueType));
                     }
                 }
             }
             return mapping;
         }
 
-        private YamlMapping DictionaryToMap(object obj)
+        private void DictionaryToMap(object obj, YamlMapping mapping)
         {
             var accessor = ObjectMemberAccessor.FindFor(obj.GetType());
-            var iter = ( (IEnumerable)obj ).GetEnumerator();
-            var dictionary = map();
+            var iter = ((IEnumerable)obj).GetEnumerator();
+
+            // When this is a pure dictionary, we can directly add key,value to YamlMapping
+            var dictionary = accessor.IsPureDictionary ? mapping : map();
             Func<object, object> key = null, value = null;
-            while ( iter.MoveNext() ) {
-                if ( key == null ) {
+            while (iter.MoveNext())
+            {
+                if (key == null)
+                {
                     var keyvalue = iter.Current.GetType();
                     var keyprop = keyvalue.GetProperty("Key");
                     var valueprop = keyvalue.GetProperty("Value");
@@ -255,7 +290,9 @@ namespace YamlSerializer.Serialization
                     ObjectToNode(value(iter.Current), accessor.ValueType)
                     );
             }
-            return dictionary;
+
+            if (!accessor.IsPureDictionary && dictionary.Count > 0)
+                mapping.Add(MapKey("~Items"), dictionary);
         }
 
         private YamlSequence CreateSequence(string tag, IEnumerator iter, Type expect)
