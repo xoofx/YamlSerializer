@@ -25,8 +25,9 @@ namespace YamlSerializer
         /// </summary>
         void AddDefaultRules()
         {
+            int max_digits_in_int = int.MaxValue.ToString().Length - 2;
             BeginUpdate();
-            AddRule<int>("!!int", @"([-+]?(0|[1-9][0-9_]*))", 
+            AddRule<int>("!!int", @"([-+]?(0|[1-9][0-9_]{0," + max_digits_in_int.ToString() + "}))", 
                 m => Convert.ToInt32(m.Value.Replace("_", "")), null);
             AddRule<int>("!!int", @"([-+]?)0b([01_]+)", m => {
                 var v = Convert.ToInt32(m.Groups[2].Value.Replace("_", ""), 2);
