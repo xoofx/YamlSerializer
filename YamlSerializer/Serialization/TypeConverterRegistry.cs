@@ -5,6 +5,7 @@ using System.Text;
 
 using System.ComponentModel;
 using System.Globalization;
+using System.Reflection;
 
 namespace YamlSerializer.Serialization
 {
@@ -85,7 +86,11 @@ namespace YamlSerializer.Serialization
                 return typeConverters[type];
             }
 
+#if !NETCORE
             var tagConverterAttribute = type.GetAttribute<YamlTypeConverterAttribute>();
+#else
+            var tagConverterAttribute = type.GetTypeInfo().GetAttribute<YamlTypeConverterAttribute>();
+#endif
             if (tagConverterAttribute != null)
             {
                 var converterType = Type.GetType(tagConverterAttribute.ConverterTypeName);

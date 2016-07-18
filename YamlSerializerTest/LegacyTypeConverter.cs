@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET40
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using YamlSerializer.Serialization;
@@ -51,3 +52,4 @@ namespace YamlSerializerTest
         }
     }
 }
+#endif

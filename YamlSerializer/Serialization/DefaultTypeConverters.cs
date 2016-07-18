@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Reflection;
 
 namespace YamlSerializer.Serialization
 {
@@ -210,7 +211,11 @@ namespace YamlSerializer.Serialization
     {
         public IYamlTypeConverter TryCreate(SerializerContext context, Type type)
         {
+#if !NETCORE
             return type.IsEnum ? new EnumConverter(type) : null;
+#else
+            return type.GetTypeInfo().IsEnum ? new EnumConverter(type) : null;
+#endif
         }
     }
 
