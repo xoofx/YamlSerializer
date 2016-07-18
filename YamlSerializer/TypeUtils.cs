@@ -30,11 +30,20 @@ namespace YamlSerializer
 
         public static Type GetInterface(this Type type, Type lookInterfaceType)
         {
+#if NETCORE
+            var typeInfo = lookInterfaceType.GetTypeInfo();
+            if (typeInfo.IsGenericTypeDefinition)
+#else
             if (lookInterfaceType.IsGenericTypeDefinition)
+#endif
             {
                 foreach (var interfaceType in type.GetInterfaces())
                 {
+#if !NETCORE
                     if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == lookInterfaceType)
+#else
+                    if (interfaceType.GetTypeInfo().IsGenericType && interfaceType.GetGenericTypeDefinition() == lookInterfaceType)
+#endif
                     {
                         return interfaceType;
                     }
@@ -66,7 +75,7 @@ namespace YamlSerializer
             where AttributeType: Attribute
         {
             var attrs = info.GetCustomAttributes(typeof(AttributeType), true);
-            if ( attrs.Length > 0 ) {
+            if ( attrs.Any() ) {
                 return attrs.Last() as AttributeType;
             } else {
                 return null;
@@ -94,14 +103,24 @@ namespace YamlSerializer
         /// <returns></returns>
         public static bool IsPureValueType(Type type)
         {
-            if ( type == typeof(IntPtr) )
+            if (type == typeof(IntPtr))
                 return false;
+#if !NETCORE
             if ( type.IsPrimitive )
                 return true;
             if ( type.IsEnum )
                 return true;
             if ( !type.IsValueType )
                 return false;
+#else
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsPrimitive)
+                return true;
+            if (typeInfo.IsEnum)
+                return true;
+            if (!typeInfo.IsValueType)
+                return false;
+#endif
             // struct
             foreach ( var f in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance) )
                 if ( !IsPureValueType(f.FieldType) )
@@ -116,7 +135,12 @@ namespace YamlSerializer
         /// <returns>true if the specified <paramref name="type"/> is a struct type; otehrwise false.</returns>
         public static bool IsStruct(Type type)
         {
+#if NET40
             return type.IsValueType && !type.IsPrimitive;
+#else
+            var typeInfo = type.GetTypeInfo();
+            return typeInfo.IsValueType && !typeInfo.IsPrimitive;
+#endif
         }
 
         /// <summary>
@@ -232,8 +256,14 @@ namespace YamlSerializer
         /// <returns></returns>
         public static bool IsPublic(Type type)
         {
+#if !NETCORE
             return type.IsPublic ||
                 ( type.IsNestedPublic && type.IsNested && IsPublic(type.DeclaringType) );
+#else
+            var typeInfo = type.GetTypeInfo();
+            return typeInfo.IsPublic ||
+                (typeInfo.IsNestedPublic && typeInfo.IsNested && IsPublic(typeInfo.DeclaringType));
+#endif
         }
 
         /// <summary>
@@ -300,7 +330,7 @@ namespace YamlSerializer
                 }
             }
 
-            #region IDictionary<K,V> メンバ
+#region IDictionary<K,V> メンバ
 
             public void Add(K key, V value)
             {
@@ -351,9 +381,9 @@ namespace YamlSerializer
                 }
             }
 
-            #endregion
+#endregion
 
-            #region ICollection<KeyValuePair<K,V>> メンバ
+#region ICollection<KeyValuePair<K,V>> メンバ
 
             public void Add(KeyValuePair<K, V> item)
             {
@@ -390,25 +420,25 @@ namespace YamlSerializer
                 throw new NotImplementedException();
             }
 
-            #endregion
+#endregion
 
-            #region IEnumerable<KeyValuePair<K,V>> メンバ
+#region IEnumerable<KeyValuePair<K,V>> メンバ
 
             public IEnumerator<KeyValuePair<K, V>> GetEnumerator()
             {
                 throw new NotImplementedException();
             }
 
-            #endregion
+#endregion
 
-            #region IEnumerable メンバ
+#region IEnumerable メンバ
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
                 throw new NotImplementedException();
             }
 
-            #endregion
+#endregion
         }
     }
 }

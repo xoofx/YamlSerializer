@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 
 using System.ComponentModel;
+using System.Reflection;
 
 namespace YamlSerializer.Serialization
 {
@@ -46,13 +47,21 @@ namespace YamlSerializer.Serialization
             if ( !TypeUtils.IsPublic(type) )
                 throw new ArgumentException(
                     "Can not serialize non-public type {0}.".DoFormat(type.FullName));
-            */ 
+            */
 
             // public properties
+#if NET40
             foreach ( var p in type.GetProperties(
-                    System.Reflection.BindingFlags.Instance | 
-                    System.Reflection.BindingFlags.Public
+                    BindingFlags.Instance | 
+                    BindingFlags.Public
                     ) ) {
+#else
+            foreach (var p in type.GetTypeInfo().GetProperties(
+                    BindingFlags.Instance |
+                    BindingFlags.Public
+                    ))
+            {
+#endif
                 var prop = p; // create closures with this local variable
                 
                 if (Members.ContainsKey(prop.Name))
@@ -72,8 +81,13 @@ namespace YamlSerializer.Serialization
             }
 
             // public fields
-            foreach ( var f in type.GetFields(System.Reflection.BindingFlags.Instance |
-                    System.Reflection.BindingFlags.Public) ) {
+#if NET40
+            foreach ( var f in type.GetFields(BindingFlags.Instance | BindingFlags.Public) ) {
+#else
+            foreach (var f in type.GetTypeInfo().GetFields(BindingFlags.Instance |
+                    BindingFlags.Public))
+            {
+#endif
                 var field = f;
                 if ( !field.IsPublic )
                     continue;
@@ -138,18 +152,30 @@ namespace YamlSerializer.Serialization
             accessor.Get = get;
             accessor.Set = set;
 
+#if NETCORE
+            var typeInfo = mType.GetTypeInfo();
+#endif
+
             if(set!=null){ // writeable ?
                 accessor.SerializeMethod = YamlSerializeMethod.Assign;
             } else {
                 accessor.SerializeMethod = YamlSerializeMethod.Never;
+#if !NETCORE
                 if ( mType.IsClass )
-                    accessor.SerializeMethod = YamlSerializeMethod.Content;
+#else
+                if ( typeInfo.IsClass)
+#endif
+                accessor.SerializeMethod = YamlSerializeMethod.Content;
             }
             var attr1 = m.GetAttribute<YamlSerializeAttribute>();
             if ( attr1 != null ) { // specified
                 if ( set == null ) { // read only member
                     if ( attr1.SerializeMethod == YamlSerializeMethod.Assign ||
+#if !NETCORE
                          ( mType.IsValueType && accessor.SerializeMethod == YamlSerializeMethod.Content ) )
+#else
+                         ( typeInfo.IsValueType && accessor.SerializeMethod == YamlSerializeMethod.Content ) )
+#endif
                         throw new ArgumentException("{0} {1} is not writeable by {2}."
                             .DoFormat(mType.FullName, m.Name, attr1.SerializeMethod.ToString()));
                 }

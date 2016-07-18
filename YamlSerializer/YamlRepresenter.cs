@@ -4,6 +4,7 @@ using System.Text;
 
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace YamlSerializer.Serialization
 {
@@ -40,7 +41,11 @@ namespace YamlSerializer.Serialization
 
         private YamlNode ObjectToNode(object obj, Type expect)
         {
+#if !NETCORE
             if ( obj != null && obj.GetType().IsClass && ( !(obj is string) || ((string)obj).Length >= 1000 ) )
+#else
+            if (obj != null && obj.GetType().GetTypeInfo().IsClass && (!(obj is string) || ((string)obj).Length >= 1000))
+#endif
                 if ( appeared.ContainsKey(obj) )
                     return appeared[obj];
 
@@ -56,7 +61,11 @@ namespace YamlSerializer.Serialization
 
         private void AppendToAppeared(object obj, YamlNode node)
         {
+#if !NETCORE
             if ( obj != null && obj.GetType().IsClass && ( !( obj is string ) || ( (string)obj ).Length >= 1000 ) )
+#else
+            if (obj != null && obj.GetType().GetTypeInfo().IsClass && (!(obj is string) || ((string)obj).Length >= 1000))
+#endif
                 if ( !appeared.ContainsKey(obj) )
                     appeared.Add(obj, node);
         }
@@ -92,7 +101,13 @@ namespace YamlSerializer.Serialization
             }
 
             // bool, byte, sbyte, decimal, double, float, int ,uint, long, ulong, short, ushort, string, enum
-            if ( type.IsPrimitive || type.IsEnum || type == typeof(decimal) || type == typeof(string) ) {
+#if !NETCORE
+            if ( type.IsPrimitive || type.IsEnum || type == typeof(decimal) || type == typeof(string) )
+#else
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsPrimitive || typeInfo.IsEnum || type == typeof(decimal) || type == typeof(string))
+#endif
+            {
                 var n = str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(context, obj) );
                 return n;
             }
@@ -102,7 +117,11 @@ namespace YamlSerializer.Serialization
                 return str(TypeNameToYamlTag(type), config.TypeConverter.ConvertToString(context, obj));
 
             // array
+#if !NETCORE
             if ( type.IsArray ) 
+#else
+            if (typeInfo.IsArray)
+#endif
                 return CreateArrayNode((Array)obj);
 
             // TODO check if we can handle generics here
@@ -114,7 +133,11 @@ namespace YamlSerializer.Serialization
             }
 
             // class / struct
+#if !NETCORE
             if ( type.IsClass || type.IsValueType )
+#else
+            if (typeInfo.IsClass || typeInfo.IsValueType)
+#endif
                 return CreateMappingOrSequence(TypeNameToYamlTag(type), obj);
 
             throw new NotImplementedException("Type '{0}' is not supported by serialization".DoFormat(type.FullName));
@@ -135,7 +158,11 @@ namespace YamlSerializer.Serialization
                 sequence.Tag = TypeNameToYamlTag(type);
                 AppendToAppeared(array, sequence);
             }
+#if !NETCORE
             if ( element.IsPrimitive || element.IsEnum || element == typeof(decimal) )
+#else
+            if (element.GetTypeInfo().IsPrimitive || element.GetTypeInfo().IsEnum || element == typeof(decimal))
+#endif
                 if ( array.Rank == 1 || ArrayLength(array, i+1) < 20 )
                     sequence.Properties["Compact"] = "true";
             for ( indices[i] = 0; indices[i] < array.GetLength(i); indices[i]++ )
@@ -299,7 +326,11 @@ namespace YamlSerializer.Serialization
         {
             var sequence = seq();
             sequence.Tag = tag;
+#if !NETCORE
             if ( expect != null && ( expect.IsPrimitive || expect.IsEnum || expect == typeof(decimal) ) )
+#else
+            if (expect != null && (expect.GetTypeInfo().IsPrimitive || expect.GetTypeInfo().IsEnum || expect == typeof(decimal)))
+#endif
                 sequence.Properties["Compact"] = "true";
 
             while ( iter.MoveNext() )

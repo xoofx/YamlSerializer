@@ -7,6 +7,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace YamlSerializer.Serialization
 {
@@ -81,7 +82,11 @@ namespace YamlSerializer.Serialization
             Type fromTag = config.TagResolver.TypeFromTag(node.Tag);
             if ( fromTag == null )
                 fromTag = TypeFromTag(node.Tag);
+#if !NETCORE
             if ( fromTag != null && type != fromTag && fromTag.IsClass && fromTag != typeof(string) )
+#else
+            if (fromTag != null && type != fromTag && fromTag.GetTypeInfo().IsClass && fromTag != typeof(string))
+#endif
                 type = fromTag;
             if ( type == null )
                 type = fromTag;
@@ -114,7 +119,11 @@ namespace YamlSerializer.Serialization
             }
 
             if ( !appeared.ContainsKey(node) )
+#if !NETCORE
                 if(obj != null && obj.GetType().IsClass && ( !(obj is string) || ((string)obj).Length >= 1000 ) )
+#else
+                if (obj != null && obj.GetType().GetTypeInfo().IsClass && (!(obj is string) || ((string)obj).Length >= 1000))
+#endif
                     appeared.Add(node, obj);
             
             return obj;
@@ -148,8 +157,13 @@ namespace YamlSerializer.Serialization
 
             // 変換結果が見かけ上他の型に見える可能性がある場合を優先的に変換
             // 予想通りの型が見つからなければエラーになる条件でもある
+#if !NETCORE
             if ( type.IsEnum || type.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
-                 type == typeof(string) || hasTypeConverter )
+#else
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsEnum || typeInfo.IsPrimitive || type == typeof(char) || type == typeof(bool) ||
+#endif
+            type == typeof(string) || hasTypeConverter )
                 return config.TypeConverter.ConvertFromString(context, nodeValue, type);
 
             // 3) If an array of bytes, try to deserialize it directly in base64

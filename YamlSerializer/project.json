@@ -1,0 +1,65 @@
+﻿{
+  "version": "0.9.0.2",
+  "dependencies": {
+  },
+  "frameworks": {
+    "MonoAndroid,Version=v6.0": {
+      "buildOptions": {
+        "define": [ "ANDROID", "MONO" ]
+      },
+      "frameworkAssemblies": {
+        "Mono.Android": "0.0.0.0",
+        "mscorlib": "2.0.5.0",
+        "System": "2.0.5.0",
+        "System.Core": "2.0.5.0",
+        "System.Data": "2.0.5.0",
+        "System.Xml": "2.0.5.0",
+        "System.Xml.Linq": "2.0.5.0"
+      }
+    },
+    "net40": {
+      "buildOptions": {
+        "define": [ "NET40" ]
+      },
+      "frameworkAssemblies": {
+        "System.Configuration": "4.0.0.0",
+        "System.Data": "4.0.0.0",
+        "System.Drawing": "4.0.0.0",
+        "System.Core": "4.0.0.0",
+        "System": "4.0.0.0",
+        "System.Runtime.Serialization": "4.0.0.0",
+        "System.Security": "4.0.0.0",
+        "System.ServiceProcess": "4.0.0.0",
+        "System.Windows.Forms": "4.0.0.0",
+        "System.Data.DataSetExtensions": "4.0.0.0",
+        "System.Xml": "4.0.0.0"
+      }
+    },
+    "netstandard1.5": {
+      "imports": "dnxcore50",
+      "buildOptions": {
+        "define": [ "NETCORE" ]
+      },
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final",
+        "System.Collections.Specialized": "4.0.1",
+        "System.ComponentModel": "4.0.1",
+        "System.ComponentModel.TypeConverter": "4.1.0",
+        "System.Data.Common": "4.1.0",
+        "System.Net.NameResolution": "4.0.0-rc2-24027",
+        "System.Net.Requests": "4.0.11-rc2-24027",
+        "System.Runtime": "4.1.0",
+        "System.Runtime.Extensions": "4.1.0",
+        "System.Runtime.Serialization.Formatters": "4.0.0-rc3-24212-01",
+        "System.Security.Cryptography.Algorithms": "4.2.0",
+        "System.Security.Principal": "4.0.1",
+        "System.Security.Principal.Windows": "4.0.0-rc2-24027",
+        "System.Threading": "4.0.11",
+        "System.Threading.Tasks": "4.0.11",
+        "System.Threading.Thread": "4.0.0",
+        "System.Threading.ThreadPool": "4.0.10-rc2-24027"
+      }
+    }
+  }
+}
